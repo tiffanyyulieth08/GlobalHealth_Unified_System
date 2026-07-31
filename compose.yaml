@@ -1,3 +1,96 @@
-# GlobalHealth Unified System - Docker Compose
-# Fase inicial: estructura base. Los servicios se definiran en fases posteriores.
-# Rutas previstas: docker/postgres/primary y docker/postgres/replica.
+name: globalhealth
+
+services:
+  postgres-primary:
+    build:
+      context: .
+      dockerfile: docker/postgres/Dockerfile
+    image: globalhealth-postgres:local
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-globalhealth}
+      POSTGRES_USER: ${POSTGRES_USER:-globalhealth}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
+    volumes:
+      - postgres-primary-data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - globalhealth-network
+    restart: unless-stopped
+
+  postgres-replica:
+    build:
+      context: .
+      dockerfile: docker/postgres/Dockerfile
+    image: globalhealth-postgres:local
+    depends_on:
+      postgres-primary:
+        condition: service_healthy
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-globalhealth}
+      POSTGRES_USER: ${POSTGRES_REPLICA_USER:-globalhealth_replica}
+      POSTGRES_PASSWORD: ${POSTGRES_REPLICA_PASSWORD:-change-me}
+    volumes:
+      - postgres-replica-data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - globalhealth-network
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      APP_NAME: ${APP_NAME:-GlobalHealth_Unified_System}
+      APP_ENV: ${APP_ENV:-development}
+      APP_DEBUG: ${APP_DEBUG:-true}
+      POSTGRES_HOST: postgres-primary
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB:-globalhealth}
+      POSTGRES_USER: ${POSTGRES_USER:-globalhealth}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
+    ports:
+      - "${APP_PORT:-8000}:8000"
+    depends_on:
+      postgres-primary:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - globalhealth-network
+      - globalhealth-edge-network
+    restart: unless-stopped
+
+networks:
+  globalhealth-network:
+    name: globalhealth-network
+    internal: true
+  globalhealth-edge-network:
+    name: globalhealth-edge-network
+    driver: bridge
+
+volumes:
+  postgres-primary-data:
+  postgres-replica-data:
