@@ -1,0 +1,3 @@
+# GlobalHealth Unified System - Docker Compose
+# Fase inicial: estructura base. Los servicios se definiran en fases posteriores.
+# Rutas previstas: docker/postgres/primary y docker/postgres/replica.
