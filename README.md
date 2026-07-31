@@ -12,7 +12,7 @@ disponibilidad de la informacion.
 
 - PostgreSQL (MOR, XML/XSD, replicacion y fragmentacion).
 - MongoDB (almacenamiento no relacional, agregaciones).
-- Python (backend).
+- Python y FastAPI (backend).
 - Docker y Docker Compose (contenedores y orquestacion).
 - GitHub Actions (CI/CD).
 
@@ -39,9 +39,75 @@ disponibilidad de la informacion.
 | `.github/workflows/`                  | CI/CD                                       |
 | `compose.yaml`                        | Orquestacion con Docker Compose             |
 
+## Requisitos
+
+- Docker Engine o Docker Desktop.
+- Docker Compose v2.
+- `curl` para comprobar el endpoint del backend.
+- Puerto local `8000` disponible.
+
+## Configuracion
+
+Crear el archivo de entorno local a partir del ejemplo:
+
+```bash
+cp .env.example .env
+```
+
+En PowerShell:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Antes de iniciar los servicios, actualizar en `.env` al menos
+`POSTGRES_PASSWORD` y `POSTGRES_REPLICA_PASSWORD`. La configuracion incluye
+los puertos del primario, la estructura inicial de la replica y el backend.
+El primario y la replica solo son accesibles dentro de
+`globalhealth-network`. La replica funciona por ahora como una instancia
+PostgreSQL independiente; la replicacion todavia no esta configurada.
+
+## Uso con Docker Compose
+
+Construir las imagenes:
+
+```bash
+docker compose build
+```
+
+Iniciar los servicios:
+
+```bash
+docker compose up -d
+```
+
+Tambien se puede crear `.env`, construir e iniciar en un solo paso:
+
+```bash
+sh scripts/bootstrap.sh
+```
+
+Comprobar el estado de los servicios:
+
+```bash
+docker compose ps
+curl http://localhost:8000/health
+```
+
+Detener los servicios:
+
+```bash
+docker compose down
+```
+
+Los volumenes `postgres-primary-data` y `postgres-replica-data` conservan los
+datos al detener los contenedores.
+
 ## Estado actual
 
-Fase inicial: solo estructura del repositorio y archivos base.
+La infraestructura Docker inicial incluye PostgreSQL primario, una instancia
+independiente preparada para la futura replica y un backend FastAPI con
+endpoint `GET /health`.
 
 No implementado todavia:
 
