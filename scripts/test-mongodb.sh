@@ -22,9 +22,11 @@ if [ -n "${MONGODB_URI:-}" ]; then
 else
     docker compose up -d mongodb
     run_file() {
-        docker compose exec -T \
+        docker compose cp "$1" mongodb:/tmp/globalhealth-mongodb-test.js
+        MSYS_NO_PATHCONV=1 docker compose exec -T \
             -e MONGODB_DB="$MONGODB_DB" \
-            mongodb mongosh "mongodb://localhost:27017/$MONGODB_DB" --quiet < "$1"
+            mongodb mongosh "mongodb://localhost:27017/$MONGODB_DB" \
+            --quiet --file /tmp/globalhealth-mongodb-test.js
     }
     cleanup() {
         docker compose exec -T mongodb \

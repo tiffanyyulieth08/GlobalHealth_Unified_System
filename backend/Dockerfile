@@ -14,7 +14,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY backend/app ./app
 COPY scripts/wait-for-service.sh /usr/local/bin/wait-for-service.sh
-RUN chmod +x /usr/local/bin/wait-for-service.sh
+RUN sed -i 's/\r$//' /usr/local/bin/wait-for-service.sh \
+    && chmod +x /usr/local/bin/wait-for-service.sh
 
 EXPOSE 8000
 

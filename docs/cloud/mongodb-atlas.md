@@ -18,6 +18,9 @@ MONGODB_DB=globalhealth
 
 El ejemplo contiene marcadores, no credenciales reales. Si la contraseña incluye caracteres reservados, codifícala como componente de URL. En producción, almacena `MONGODB_URI` en el gestor de secretos de la plataforma.
 
+El valor versionado en `.env.example` es
+`mongodb://mongodb:27017/globalhealth` y no contiene credenciales.
+
 ## 3. Crear colecciones, índices y datos
 
 Instala `mongosh`, exporta las variables sin imprimir la URI y ejecuta:

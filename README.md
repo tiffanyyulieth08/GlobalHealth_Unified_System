@@ -44,6 +44,7 @@ disponibilidad de la informacion.
 - Docker Engine o Docker Desktop.
 - Docker Compose v2.
 - `curl` para comprobar el endpoint del backend.
+- `mongosh` si se prueban scripts directamente contra MongoDB Atlas.
 - Puerto local `8000` disponible.
 
 ## Configuracion
@@ -60,12 +61,12 @@ En PowerShell:
 Copy-Item .env.example .env
 ```
 
-Antes de iniciar los servicios, actualizar en `.env` al menos
-`POSTGRES_PASSWORD` y `POSTGRES_REPLICA_PASSWORD`. La configuracion incluye
-los puertos del primario, la estructura inicial de la replica y el backend.
-El primario y la replica solo son accesibles dentro de
-`globalhealth-network`. La replica funciona por ahora como una instancia
-PostgreSQL independiente; la replicacion todavia no esta configurada.
+Antes de iniciar los servicios, actualiza en `.env` al menos
+`POSTGRES_PASSWORD` y `POSTGRES_REPLICATION_PASSWORD`. Conserva
+`POSTGRES_WRITE_URL` apuntando al primario y `POSTGRES_READ_URL` apuntando a la
+replica. `MONGODB_URI` usa por defecto el servicio local sin credenciales; para
+Atlas debe reemplazarse mediante una variable de entorno o un gestor de
+secretos.
 
 ## Uso con Docker Compose
 
@@ -92,6 +93,8 @@ Comprobar el estado de los servicios:
 ```bash
 docker compose ps
 curl http://localhost:8000/health
+curl http://localhost:8000/health/databases
+curl http://localhost:8000/api/mongodb/health
 ```
 
 Detener los servicios:
@@ -100,14 +103,14 @@ Detener los servicios:
 docker compose down
 ```
 
-Los volumenes `postgres-primary-data` y `postgres-replica-data` conservan los
-datos al detener los contenedores.
+Los volumenes `postgres-primary-data`, `postgres-replica-data` y
+`mongodb-data` conservan los datos al detener los contenedores.
 
 ## Estado actual
 
-La infraestructura Docker incluye PostgreSQL primario, una instancia
-independiente preparada para la futura replica y un backend FastAPI con
-endpoint `GET /health`.
+La infraestructura Docker incluye PostgreSQL Primary/Replica con streaming
+replication, MongoDB para telemetria medica y un backend FastAPI que separa
+escrituras PostgreSQL, lecturas desde la replica y operaciones MongoDB.
 
 ### Fase 1: MOR y XML/XSD
 
@@ -163,8 +166,50 @@ XML_XSD_PSQL="psql -h localhost -U globalhealth" XML_XSD_DB=globalhealth_xml_xsd
   sh scripts/test-xml-xsd.sh
 ```
 
-### Fase 2: pendiente
+### Fase 2: PostgreSQL Primary/Replica y MongoDB
 
-- MongoDB.
-- Replicacion PostgreSQL.
-- Fragmentacion (horizontal y vertical).
+- **PostgreSQL Primary/Replica**: el primario genera WAL y la replica se
+  inicializa con `pg_basebackup` en modo hot standby. El backend usa
+  `POSTGRES_WRITE_URL` para escrituras y `POSTGRES_READ_URL` para lecturas. El
+  endpoint `GET /dashboard` permanece conectado a la replica y
+  `GET /health/databases` comprueba el rol de ambas instancias.
+- **MongoDB**: las colecciones `patients`, `sessions` y `sensor_logs` incluyen
+  validadores, relaciones logicas mediante `patientId` y `sessionId`, indices,
+  semillas, CRUD, filtros, limites, ordenamiento y agregaciones. El pipeline
+  paciente → sesiones → logs esta disponible en los scripts y mediante
+  `GET /api/patients/{patientId}/telemetry`.
+- **FastAPI**: integra el router de telemetria MongoDB junto con los pools de
+  escritura y lectura PostgreSQL. La conexion MongoDB se configura con
+  `MONGODB_URI` y `MONGODB_DB`.
+
+#### Probar replicacion
+
+```bash
+sh scripts/test-replication.sh
+```
+
+La prueba verifica que el primario no esta en recovery, que la replica si lo
+esta y que un registro escrito en el primario llega a la replica. El estado
+operativo tambien puede consultarse con:
+
+```bash
+sh scripts/replication-status.sh
+```
+
+#### Probar MongoDB
+
+```bash
+sh scripts/test-mongodb.sh
+```
+
+La prueba crea una base temporal, ejecuta colecciones, indices, semillas,
+operaciones y agregaciones, valida el `$lookup` anidado y elimina la base al
+terminar.
+
+Consulta [la arquitectura Primary/Replica](docs/architecture/postgresql-primary-replica.md)
+y [la guia de MongoDB Atlas](docs/cloud/mongodb-atlas.md) para despliegue y
+operacion.
+
+### Fase 3: pendiente
+
+- Fragmentacion horizontal y vertical.
