@@ -1,6 +1,27 @@
 name: globalhealth
 
 services:
+  mongodb:
+    image: mongo:8.0
+    environment:
+      MONGO_INITDB_DATABASE: ${MONGODB_DB:-globalhealth}
+    volumes:
+      - mongodb-data:/data/db
+    healthcheck:
+      test:
+        - CMD
+        - mongosh
+        - --quiet
+        - --eval
+        - "db.adminCommand('ping')"
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - globalhealth-network
+    restart: unless-stopped
+
   postgres-primary:
     build:
       context: .
@@ -63,9 +84,13 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-globalhealth}
       POSTGRES_USER: ${POSTGRES_USER:-globalhealth}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
+      MONGODB_URI: ${MONGODB_URI:-mongodb://mongodb:27017/globalhealth}
+      MONGODB_DB: ${MONGODB_DB:-globalhealth}
     ports:
       - "${APP_PORT:-8000}:8000"
     depends_on:
+      mongodb:
+        condition: service_healthy
       postgres-primary:
         condition: service_healthy
     healthcheck:
@@ -92,5 +117,6 @@ networks:
     driver: bridge
 
 volumes:
+  mongodb-data:
   postgres-primary-data:
   postgres-replica-data:
