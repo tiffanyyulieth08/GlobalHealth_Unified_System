@@ -82,6 +82,82 @@ services:
       - globalhealth-network
     restart: unless-stopped
 
+  fragment-public:
+    image: postgres:16-bookworm
+    environment:
+      POSTGRES_DB: ${FRAGMENT_PUBLIC_DB:-globalhealth_public}
+      POSTGRES_USER: ${POSTGRES_USER:-globalhealth}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
+      FRAGMENT_FDW_PASSWORD: ${FRAGMENT_FDW_PASSWORD:-change-me}
+    volumes:
+      - ./database/postgres/fragmentation/vertical/public:/docker-entrypoint-initdb.d:ro
+      - postgres-fragment-public-data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - globalhealth-network
+    restart: unless-stopped
+
+  fragment-financial:
+    image: postgres:16-bookworm
+    environment:
+      POSTGRES_DB: ${FRAGMENT_FINANCIAL_DB:-globalhealth_financial}
+      POSTGRES_USER: ${POSTGRES_USER:-globalhealth}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
+      FRAGMENT_FDW_PASSWORD: ${FRAGMENT_FDW_PASSWORD:-change-me}
+    volumes:
+      - ./database/postgres/fragmentation/vertical/financial:/docker-entrypoint-initdb.d:ro
+      - postgres-fragment-financial-data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - globalhealth-network
+    restart: unless-stopped
+
+  fragmentation-coordinator:
+    build:
+      context: .
+      dockerfile: docker/postgres/fragmentation/coordinator/Dockerfile
+    image: globalhealth-fragmentation-coordinator:local
+    depends_on:
+      fragment-public:
+        condition: service_healthy
+      fragment-financial:
+        condition: service_healthy
+    environment:
+      POSTGRES_DB: ${FRAGMENT_COORDINATOR_DB:-globalhealth}
+      POSTGRES_USER: ${POSTGRES_USER:-globalhealth}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
+      FRAGMENT_PUBLIC_DB: ${FRAGMENT_PUBLIC_DB:-globalhealth_public}
+      FRAGMENT_FINANCIAL_DB: ${FRAGMENT_FINANCIAL_DB:-globalhealth_financial}
+      FRAGMENT_FDW_PASSWORD: ${FRAGMENT_FDW_PASSWORD:-change-me}
+    volumes:
+      - ./database/postgres/fragmentation/vertical/coordinator:/docker-entrypoint-initdb.d:ro
+      - postgres-fragmentation-coordinator-data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - globalhealth-network
+    restart: unless-stopped
+
   backend:
     build:
       context: .
@@ -135,3 +211,6 @@ volumes:
   mongodb-data:
   postgres-primary-data:
   postgres-replica-data:
+  postgres-fragment-public-data:
+  postgres-fragment-financial-data:
+  postgres-fragmentation-coordinator-data:
