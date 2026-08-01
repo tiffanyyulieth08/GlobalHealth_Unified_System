@@ -8,6 +8,9 @@ from fastapi import FastAPI
 from fastapi import Request
 from fastapi.responses import JSONResponse
 
+from app.mongodb import close_mongodb, connect_mongodb
+from app.routers.telemetry import router as telemetry_router
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
@@ -25,9 +28,11 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     except Exception:
         await app.state.write_pool.close()
         raise
+    connect_mongodb()
     try:
         yield
     finally:
+        close_mongodb()
         await app.state.read_pool.close()
         await app.state.write_pool.close()
 
@@ -36,6 +41,7 @@ app = FastAPI(
     title=os.getenv("APP_NAME", "GlobalHealth Unified System"),
     lifespan=lifespan,
 )
+app.include_router(telemetry_router)
 
 
 @app.get("/health")
