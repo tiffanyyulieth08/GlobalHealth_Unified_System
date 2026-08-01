@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           targetNamespace="https://globalhealth.example/xml/clinical-record/v1"
+           xmlns="https://globalhealth.example/xml/clinical-record/v1"
+           elementFormDefault="qualified">
+  <xs:element name="clinicalRecord">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="patient">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="id" type="identifierType"/>
+              <xs:element name="fullName" type="nameType"/>
+              <xs:element name="birthDate" type="xs:date"/>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="physician">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="license" type="licenseType"/>
+              <xs:element name="fullName" type="nameType"/>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="recordDate" type="xs:dateTime"/>
+        <xs:element name="diagnosis">
+          <xs:complexType>
+            <xs:simpleContent>
+              <xs:extension base="diagnosisType">
+                <xs:attribute name="code" type="diagnosisCodeType" use="required"/>
+                <xs:attribute name="severity" type="severityType" use="required"/>
+              </xs:extension>
+            </xs:simpleContent>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="notes" type="notesType" minOccurs="0"/>
+      </xs:sequence>
+      <xs:attribute name="version" use="required" fixed="1.0"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:simpleType name="identifierType">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="PAT-[0-9]{6}"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="licenseType">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="MED-[0-9]{5}"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="nameType">
+    <xs:restriction base="xs:string">
+      <xs:minLength value="3"/>
+      <xs:maxLength value="120"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="diagnosisType">
+    <xs:restriction base="xs:string">
+      <xs:minLength value="3"/>
+      <xs:maxLength value="500"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="diagnosisCodeType">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[A-Z][0-9]{2}(\.[0-9]{1,2})?"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="severityType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="low"/>
+      <xs:enumeration value="moderate"/>
+      <xs:enumeration value="high"/>
+      <xs:enumeration value="critical"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="notesType">
+    <xs:restriction base="xs:string">
+      <xs:maxLength value="1000"/>
+    </xs:restriction>
+  </xs:simpleType>
+</xs:schema>

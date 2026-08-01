@@ -105,14 +105,66 @@ datos al detener los contenedores.
 
 ## Estado actual
 
-La infraestructura Docker inicial incluye PostgreSQL primario, una instancia
+La infraestructura Docker incluye PostgreSQL primario, una instancia
 independiente preparada para la futura replica y un backend FastAPI con
 endpoint `GET /health`.
 
-No implementado todavia:
+### Fase 1: MOR y XML/XSD
 
-- MOR (Modelo Objeto Relacional).
-- XML/XSD.
+- **MOR (Modelo Objeto-Relacional)** en `database/postgres/mor/`: tipos
+  compuestos (`address_t`, `phone_t`, `equipment_t`, `clinic_t`), tabla tipada
+  con `CREATE TABLE ... OF`, herencia (`employee` / `doctor`), composicion
+  clinica-equipos, arreglos de especialidades y telefonos, funciones que reciben
+  tipos compuestos, datos semilla, operaciones CRUD y pruebas positivas y
+  negativas.
+- **XML/XSD** en `database/postgres/xml/`: registro de esquemas XSD,
+  validacion de registros clinicos contra el XSD (plpython3 + lxml),
+  operaciones XML (XPath, `XMLTABLE`) y pruebas automatizadas.
+
+#### Probar MOR
+
+```bash
+sh scripts/test-mor.sh
+```
+
+El script crea la base temporal `globalhealth_mor_test`, aplica en orden los
+scripts de `database/postgres/mor/` (`01_types.sql`, `02_tables.sql`,
+`03_functions.sql`, `04_seed.sql`, `05_crud.sql`) y ejecuta `06_tests.sql`, que
+incluye aserciones positivas y negativas. Al finalizar elimina la base temporal.
+Requiere Docker Compose con el servicio `postgres-primary`.
+
+Opcionalmente, para usar un `psql` externo:
+
+```bash
+MOR_PSQL="psql -h localhost -U globalhealth" MOR_DB=globalhealth_mor_test \
+  sh scripts/test-mor.sh
+```
+
+#### Probar XML/XSD
+
+```bash
+sh scripts/test-xml-xsd.sh
+```
+
+El script crea la base temporal `globalhealth_xml_xsd_test`, registra el esquema
+`clinical-record-v1` desde `database/postgres/xml/schemas/` y ejecuta las
+pruebas de `04_tests.sql`. Al finalizar elimina la base temporal.
+
+Las pruebas verifican que:
+
+- los documentos XML validos se insertan y se consultan por XPath y `XMLTABLE`;
+- el XML malformado es rechazado;
+- el XML bien formado pero invalido segun el XSD tambien es rechazado.
+
+Opcionalmente, para usar un `psql` externo:
+
+```bash
+XML_XSD_PSQL="psql -h localhost -U globalhealth" XML_XSD_DB=globalhealth_xml_xsd_test \
+  sh scripts/test-xml-xsd.sh
+```
+
+### Fase 2: pendiente
+
 - MongoDB.
 - Replicacion PostgreSQL.
 - Fragmentacion (horizontal y vertical).
