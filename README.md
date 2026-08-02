@@ -196,6 +196,36 @@ operativo tambien puede consultarse con:
 sh scripts/replication-status.sh
 ```
 
+#### Demostracion de caos de replicacion
+
+Con Primary, Replica y el backend configurados mediante `.env`, ejecutar:
+
+```bash
+sh scripts/chaos-replication.sh
+```
+
+La demostracion realiza estos pasos:
+
+1. Comprueba que Primary y Replica estan saludables.
+2. Inserta un dato en Primary y espera hasta observarlo en Replica.
+3. Detiene `postgres-primary` sin eliminar volumenes.
+4. Consulta `/dashboard` y exige HTTP 200 desde Replica.
+5. Intenta una escritura PostgreSQL por HTTP y exige HTTP 503.
+6. Reinicia Primary y espera hasta que vuelva a estar saludable.
+7. Confirma estado `streaming` en `pg_stat_replication` y
+   `pg_stat_wal_receiver`.
+8. Guarda las evidencias en `docs/evidence/replication-chaos/`.
+
+La Replica no se promueve en ningun momento. El script registra un `trap` de
+salida que reinicia Primary incluso si la demostracion falla o es interrumpida.
+No ejecuta `docker compose down` ni elimina volumenes.
+
+Si se utiliza un proyecto Compose con nombre explicito:
+
+```bash
+CHAOS_COMPOSE_PROJECT=globalhealth sh scripts/chaos-replication.sh
+```
+
 #### Probar MongoDB
 
 ```bash
