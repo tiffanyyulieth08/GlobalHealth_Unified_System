@@ -46,6 +46,8 @@ disponibilidad de la informacion.
 - `curl` para comprobar el endpoint del backend.
 - `mongosh` si se prueban scripts directamente contra MongoDB Atlas.
 - Puerto local `8000` disponible.
+- Para la prueba integral: shell POSIX, `sed`, `grep` y `curl`; por defecto se
+  usa el puerto local `18080`.
 
 ## Configuracion
 
@@ -275,3 +277,25 @@ restricciones CHECK por region, el enrutamiento de inserciones segun la region, 
 rechazo de inserciones en el nodo equivocado, la deteccion de `patient_id`
 duplicado entre nodos y la reconstruccion global de 10 registros mediante
 `UNION ALL`. Ambas terminan con `All fragmentation ... tests passed.` y salida 0.
+
+## Prueba de integracion completa
+
+Con Docker activo, ejecutar:
+
+```bash
+sh scripts/test-all.sh
+```
+
+La prueba crea un entorno Docker aislado y verifica en un solo flujo la creación
+del médico en PostgreSQL Primary, la aceptación y rechazo XML/XSD, la telemetría
+en MongoDB con `$lookup`, la consulta del dashboard desde Replica, ambas
+reconstrucciones de fragmentación y la ausencia de credenciales en respuestas y
+logs. Las evidencias sanitizadas de la ejecución quedan en
+`docs/evidence/integration/`.
+
+El entorno se elimina junto con sus volúmenes al terminar. Para conservarlo con
+fines de diagnóstico:
+
+```bash
+KEEP_INTEGRATION_ENV=1 sh scripts/test-all.sh
+```
