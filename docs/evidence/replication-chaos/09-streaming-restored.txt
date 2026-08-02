@@ -1,0 +1,5 @@
+primary_streaming=t
+replica_streaming=t
+attempts=3
+walreceiver|streaming|async
+streaming|postgres-primary|5432

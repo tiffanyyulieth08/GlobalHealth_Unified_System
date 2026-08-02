@@ -108,3 +108,33 @@ async def dashboard(request: Request) -> dict[str, object]:
         "database_size_bytes": row["database_size_bytes"],
         "active_connections": row["active_connections"],
     }
+
+
+@app.post("/chaos/replication/write", status_code=201)
+async def chaos_replication_write(
+    request: Request,
+    probe_id: str,
+) -> JSONResponse:
+    try:
+        await asyncio.wait_for(
+            request.app.state.write_pool.execute(
+                """
+                INSERT INTO chaos_replication_probe (probe_id)
+                VALUES ($1)
+                """,
+                probe_id,
+            ),
+            timeout=5,
+        )
+    except Exception:
+        return JSONResponse(
+            {
+                "status": "unavailable",
+                "detail": "PostgreSQL Primary is unavailable",
+            },
+            status_code=503,
+        )
+    return JSONResponse(
+        {"status": "created", "probe_id": probe_id},
+        status_code=201,
+    )

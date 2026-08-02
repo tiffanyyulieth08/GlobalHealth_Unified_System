@@ -1,0 +1,2 @@
+ Container globalhealth-chaos-seidy-postgres-primary-1  Stopping
+ Container globalhealth-chaos-seidy-postgres-primary-1  Stopped

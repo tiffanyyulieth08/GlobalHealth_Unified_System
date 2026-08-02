@@ -1,0 +1,2 @@
+ Container globalhealth-chaos-seidy-postgres-primary-1  Starting
+ Container globalhealth-chaos-seidy-postgres-primary-1  Started
