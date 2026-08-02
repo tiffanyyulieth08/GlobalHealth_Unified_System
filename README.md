@@ -210,6 +210,68 @@ Consulta [la arquitectura Primary/Replica](docs/architecture/postgresql-primary-
 y [la guia de MongoDB Atlas](docs/cloud/mongodb-atlas.md) para despliegue y
 operacion.
 
-### Fase 3: pendiente
+### Fase 3: Fragmentacion de datos
 
-- Fragmentacion horizontal y vertical.
+La fragmentacion separa los datos de pacientes en nodos PostgreSQL dedicados. Cada
+nodo es un contenedor independiente dentro de `globalhealth-network` y se accede
+mediante `postgres_fdw` desde un nodo coordinador.
+
+#### Nodos de fragmentacion
+
+| Servicio                              | Base                       | Proposito                              |
+| ------------------------------------- | -------------------------- | -------------------------------------- |
+| `fragment-public`                     | `globalhealth_public`      | Fragmento vertical con datos publicos  |
+| `fragment-financial`                  | `globalhealth_financial`   | Fragmento vertical confidencial        |
+| `fragment-north`                      | `globalhealth_north`       | Fragmento horizontal region `NORTH`    |
+| `fragment-south`                      | `globalhealth_south`       | Fragmento horizontal region `SOUTH`    |
+| `fragmentation-coordinator`           | `globalhealth`             | Coordinador vertical (`postgres_fdw`)  |
+| `fragmentation-coordinator-horizontal`| `globalhealth_horizontal`  | Coordinador horizontal (`postgres_fdw`)|
+
+#### Fragmentacion vertical
+
+`patients_public` (datos publicos) y `patients_financial` (datos financieros) usan
+`patient_id` como llave primaria. Roles separados: `public_role` solo lee datos
+publicos y `financial_role` solo lee datos financieros; el rol publico no accede a
+informacion financiera.
+
+#### Reconstruccion vertical mediante JOIN
+
+El coordinador `fragmentation-coordinator` expone las foreign tables
+`patients_public` y `patients_financial` y la vista `patients_full`, que reconstruye
+el paciente completo con `JOIN ... USING (patient_id)`.
+
+#### Fragmentacion horizontal
+
+`patients` en `fragment-north` restringe `region = 'NORTH'` y en `fragment-south`
+`region = 'SOUTH'` mediante restricciones CHECK. La columna `region` es obligatoria.
+El coordinador enruta las inserciones con la funcion `insert_patient()` segun la
+region y rechaza regiones no soportadas.
+
+#### Reconstruccion horizontal mediante UNION ALL
+
+El coordinador `fragmentation-coordinator-horizontal` expone las foreign tables
+`patients_north` y `patients_south` y la vista `patients_all`, que reconstruye todos
+los pacientes con `UNION ALL`.
+
+#### Ejecutar las pruebas
+
+```bash
+sh scripts/test-fragmentation-vertical.sh
+sh scripts/test-fragmentation-horizontal.sh
+```
+
+Para ejecutar ambas en secuencia:
+
+```bash
+sh scripts/test-fragmentation.sh
+```
+
+#### Resultados esperados
+
+La prueba vertical confirma 6 registros en cada fragmento, la reconstruccion de 5
+pacientes completos mediante JOIN, 1 registro huerfano en cada fragmento y que el
+rol publico no accede a informacion financiera. La prueba horizontal confirma las
+restricciones CHECK por region, el enrutamiento de inserciones segun la region, el
+rechazo de inserciones en el nodo equivocado, la deteccion de `patient_id`
+duplicado entre nodos y la reconstruccion global de 10 registros mediante
+`UNION ALL`. Ambas terminan con `All fragmentation ... tests passed.` y salida 0.
