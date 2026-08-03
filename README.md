@@ -1,5 +1,8 @@
 # GlobalHealth Unified System
 
+La [documentación final](docs/final-documentation.md) reúne la arquitectura,
+fundamentos, despliegue, pruebas, defensa oral y matriz de trazabilidad.
+
 ## Descripcion del proyecto
 
 GlobalHealth Unified System es un sistema que unifica la gestion de datos de salud mediante
