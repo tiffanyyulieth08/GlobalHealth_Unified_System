@@ -1,0 +1,1 @@
+OK: respuestas y logs no exponen credenciales

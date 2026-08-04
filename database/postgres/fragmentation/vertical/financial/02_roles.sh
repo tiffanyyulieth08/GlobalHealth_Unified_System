@@ -10,5 +10,5 @@ CREATE ROLE financial_role LOGIN PASSWORD :'fdw_password';
 CREATE ROLE fdw_reader LOGIN PASSWORD :'fdw_password';
 
 GRANT SELECT ON patients_financial TO financial_role;
-GRANT SELECT ON patients_financial TO fdw_reader;
+GRANT SELECT, INSERT ON patients_financial TO fdw_reader;
 EOSQL

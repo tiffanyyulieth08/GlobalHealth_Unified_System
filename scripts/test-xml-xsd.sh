@@ -18,14 +18,21 @@ if [ -n "${XML_XSD_PSQL:-}" ]; then
         PGPASSWORD="${POSTGRES_PASSWORD:-change-me}" $XML_XSD_PSQL -v ON_ERROR_STOP=1 -d "$DB_NAME" "$@" -f "$sql_file"
     }
 else
-    docker compose up -d postgres-primary
+    compose() {
+        if [ -n "${XML_XSD_COMPOSE_PROJECT:-}" ]; then
+            docker compose -p "$XML_XSD_COMPOSE_PROJECT" "$@"
+        else
+            docker compose "$@"
+        fi
+    }
+    compose up -d --wait --wait-timeout 120 postgres-primary
     run_admin() {
-        docker compose exec -T postgres-primary psql -v ON_ERROR_STOP=1 -U "$DB_USER" -d postgres "$@"
+        compose exec -T postgres-primary psql -v ON_ERROR_STOP=1 -U "$DB_USER" -d postgres "$@"
     }
     run_file() {
         sql_file="$1"
         shift
-        docker compose exec -T postgres-primary psql -v ON_ERROR_STOP=1 -U "$DB_USER" -d "$DB_NAME" "$@" < "$sql_file"
+        compose exec -T postgres-primary psql -v ON_ERROR_STOP=1 -U "$DB_USER" -d "$DB_NAME" "$@" < "$sql_file"
     }
 fi
 

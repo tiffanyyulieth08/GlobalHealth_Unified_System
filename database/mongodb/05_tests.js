@@ -7,6 +7,15 @@ function assertCondition(condition, message) {
   }
 }
 
+function expectRejected(action, message) {
+  try {
+    action();
+  } catch (error) {
+    return;
+  }
+  throw new Error(message);
+}
+
 for (const collectionName of ["patients", "sessions", "sensor_logs"]) {
   assertCondition(
     telemetryDb.getCollectionNames().includes(collectionName),
@@ -39,6 +48,134 @@ assertCondition(
   logIndexes.some((index) => index.name === "ix_log_session_recorded"),
   "Missing log relationship index"
 );
+
+print("Validators reject invalid documents:");
+expectRejected(
+  () =>
+    telemetryDb.patients.insertOne({
+      patientId: "INVALID-P001",
+      firstName: "Inv",
+      dateOfBirth: ISODate("2000-01-01T00:00:00Z"),
+      sex: "female",
+      active: true
+    }),
+  "Validator accepted a patient without lastName"
+);
+expectRejected(
+  () =>
+    telemetryDb.patients.insertOne({
+      patientId: "INVALID-P002",
+      firstName: "Inv",
+      lastName: "Alid",
+      dateOfBirth: ISODate("2000-01-01T00:00:00Z"),
+      sex: "martian",
+      active: true
+    }),
+  "Validator accepted a patient with an invalid sex value"
+);
+print("OK: validators reject invalid documents");
+
+print("Unique indexes reject duplicate keys:");
+expectRejected(
+  () =>
+    telemetryDb.patients.insertOne({
+      patientId: "SEED-P001",
+      firstName: "Dup",
+      lastName: "Licado",
+      dateOfBirth: ISODate("2000-01-01T00:00:00Z"),
+      sex: "female",
+      active: true
+    }),
+  "Unique index accepted a duplicate patientId"
+);
+expectRejected(
+  () =>
+    telemetryDb.sessions.insertOne({
+      sessionId: "SEED-S001",
+      patientId: "SEED-P002",
+      deviceId: "ECG-CR-999",
+      startedAt: ISODate("2026-07-20T08:00:00Z"),
+      status: "completed"
+    }),
+  "Unique index accepted a duplicate sessionId"
+);
+print("OK: unique indexes reject duplicate keys");
+
+print("Updates persist changes:");
+const updateResult = telemetryDb.patients.updateOne(
+  { patientId: "SEED-P003" },
+  { $set: { active: true } }
+);
+assertCondition(updateResult.modifiedCount === 1, "Update did not modify SEED-P003");
+assertCondition(
+  telemetryDb.patients.findOne({ patientId: "SEED-P003" }).active === true,
+  "Update change was not persisted"
+);
+print("OK: update persisted the change");
+
+print("Deletions remove documents:");
+telemetryDb.sensor_logs.insertOne({
+  logId: "TMP-L999",
+  sessionId: "SEED-S001",
+  patientId: "SEED-P001",
+  sensorType: "heart_rate",
+  value: 1,
+  unit: "bpm",
+  recordedAt: ISODate("2026-07-20T08:03:00Z")
+});
+const deleteResult = telemetryDb.sensor_logs.deleteOne({ logId: "TMP-L999" });
+assertCondition(deleteResult.deletedCount === 1, "Delete did not remove TMP-L999");
+assertCondition(
+  telemetryDb.sensor_logs.countDocuments({ logId: "TMP-L999" }) === 0,
+  "Deleted log still present"
+);
+print("OK: delete removed the document");
+
+print("Comparison filters with limit and sort:");
+const highRate = telemetryDb.sensor_logs
+  .find(
+    { patientId: "SEED-P001", sensorType: "heart_rate", value: { $gte: 70 } },
+    { _id: 0, logId: 1, value: 1 }
+  )
+  .sort({ value: -1 })
+  .limit(2)
+  .toArray();
+assertCondition(highRate.length === 2, "limit did not cap results");
+assertCondition(highRate[0].value >= highRate[1].value, "sort descending was not applied");
+assertCondition(
+  highRate.every((log) => log.value >= 70),
+  "comparison filter (>=) was not applied"
+);
+assertCondition(
+  highRate.map((log) => log.logId).join(",") === "SEED-L002,SEED-L001",
+  "sort/limit did not return the expected order"
+);
+print("OK: comparison filter, limit and sort verified");
+
+print("Aggregation (group, sum, min, max, avg):");
+const summary = telemetryDb.sensor_logs
+  .aggregate([
+    { $match: { patientId: "SEED-P001" } },
+    {
+      $group: {
+        _id: "$sensorType",
+        samples: { $sum: 1 },
+        minimum: { $min: "$value" },
+        maximum: { $max: "$value" },
+        average: { $avg: "$value" }
+      }
+    }
+  ])
+  .toArray();
+const heartRateGroup = summary.find((entry) => entry._id === "heart_rate");
+const oxygenGroup = summary.find((entry) => entry._id === "oxygen_saturation");
+assertCondition(heartRateGroup.samples === 2, "Aggregation samples for heart_rate wrong");
+assertCondition(heartRateGroup.minimum === 72, "Aggregation minimum for heart_rate wrong");
+assertCondition(heartRateGroup.maximum === 78, "Aggregation maximum for heart_rate wrong");
+assertCondition(heartRateGroup.average === 75, "Aggregation average for heart_rate wrong");
+assertCondition(oxygenGroup.samples === 2, "Aggregation samples for oxygen wrong");
+assertCondition(oxygenGroup.average === 96, "Aggregation average for oxygen wrong");
+print("OK: aggregation verified");
 
 const joined = telemetryDb.patients
   .aggregate([

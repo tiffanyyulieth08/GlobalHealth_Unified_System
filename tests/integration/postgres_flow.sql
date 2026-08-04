@@ -40,7 +40,7 @@ VALUES (
     ROW('506', '2000-0001', 'work')::phone_t,
     10000.00,
     'Medicina Interna',
-    'INT-MED-900001',
+    'MED-90001',
     ARRAY['Medicina Interna'],
     900001,
     ARRAY[ROW('506', '2000-0001', 'work')::phone_t]
@@ -50,12 +50,12 @@ INSERT INTO clinical_records_xml (clinical_document)
 VALUES (xmlparse(document
 '<clinicalRecord xmlns="https://globalhealth.example/xml/clinical-record/v1" version="1.0">
   <patient>
-    <id>INT-P001</id>
+    <id>PAT-900001</id>
     <fullName>Paciente Integracion</fullName>
     <birthDate>1992-05-14</birthDate>
   </patient>
   <physician>
-    <license>INT-MED-900001</license>
+    <license>MED-90001</license>
     <fullName>Tiffany Integration</fullName>
   </physician>
   <recordDate>2026-08-01T09:00:00-06:00</recordDate>
@@ -73,7 +73,7 @@ BEGIN
         INSERT INTO clinical_records_xml (clinical_document)
         VALUES (xmlparse(document
             '<clinicalRecord xmlns="https://globalhealth.example/xml/clinical-record/v1" version="1.0">
-               <patient><id>INT-P001</id></patient>
+               <patient><id>PAT-900001</id></patient>
                <recordDate>not-a-date</recordDate>
              </clinicalRecord>'));
         RAISE EXCEPTION 'El XML invalido fue aceptado';
@@ -84,15 +84,15 @@ BEGIN
             END IF;
     END;
 
-    IF (SELECT count(*) FROM doctor WHERE license = 'INT-MED-900001') <> 1 THEN
+    IF (SELECT count(*) FROM doctor WHERE license = 'MED-90001') <> 1 THEN
         RAISE EXCEPTION 'No se creo el medico de integracion';
     END IF;
 
     IF (
         SELECT count(*)
         FROM clinical_record_relational
-        WHERE patient_id = 'INT-P001'
-          AND physician_license = 'INT-MED-900001'
+        WHERE patient_id = 'PAT-900001'
+          AND physician_license = 'MED-90001'
     ) <> 1 THEN
         RAISE EXCEPTION 'No se inserto el expediente XML valido';
     END IF;

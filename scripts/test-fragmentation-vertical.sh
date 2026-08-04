@@ -35,9 +35,96 @@ assert_eq() {
     echo "OK: $label -> $actual"
 }
 
+public_orphans() {
+    query fragmentation-coordinator "$DB_USER" "$COORDINATOR_DB" "
+        SELECT count(*) FROM (
+            SELECT p.patient_id
+            FROM patients_public p
+            LEFT JOIN patients_financial f USING (patient_id)
+            WHERE f.patient_id IS NULL
+        ) orphans"
+}
+
+financial_orphans() {
+    query fragmentation-coordinator "$DB_USER" "$COORDINATOR_DB" "
+        SELECT count(*) FROM (
+            SELECT f.patient_id
+            FROM patients_financial f
+            LEFT JOIN patients_public p USING (patient_id)
+            WHERE p.patient_id IS NULL
+        ) orphans"
+}
+
+# Crea temporalmente un registro solo en un fragmento (huerfano), lo detecta
+# desde el coordinador dentro de la misma transaccion y revierte con ROLLBACK.
+# Si el huerfano no se detecta, la suite falla con FAIL.
+expect_public_orphan_rejected() {
+    label="$1"
+    out="$(
+        compose exec -T fragmentation-coordinator \
+            psql -v ON_ERROR_STOP=1 -U "$DB_USER" -d "$COORDINATOR_DB" <<SQL 2>&1 || true
+BEGIN;
+INSERT INTO patients_public (patient_id, full_name) VALUES (99, 'Orfan Publico');
+DO \$\$
+DECLARE
+    v_orphans integer;
+BEGIN
+    SELECT count(*) INTO v_orphans FROM (
+        SELECT p.patient_id
+        FROM patients_public p
+        LEFT JOIN patients_financial f USING (patient_id)
+        WHERE f.patient_id IS NULL
+    ) o;
+    IF v_orphans <> 1 THEN
+        RAISE EXCEPTION 'FAIL: huerfano publico no detectado (v_orphans=%)', v_orphans;
+    END IF;
+    RAISE NOTICE 'ORPHAN_PUBLIC_DETECTED';
+END
+\$\$;
+ROLLBACK;
+SQL
+    )"
+    if ! printf '%s\n' "$out" | grep -Fq "ORPHAN_PUBLIC_DETECTED"; then
+        fail "$label"
+    fi
+    echo "OK: $label"
+}
+
+expect_financial_orphan_rejected() {
+    label="$1"
+    out="$(
+        compose exec -T fragmentation-coordinator \
+            psql -v ON_ERROR_STOP=1 -U "$DB_USER" -d "$COORDINATOR_DB" <<SQL 2>&1 || true
+BEGIN;
+INSERT INTO patients_financial (patient_id, insurance_provider) VALUES (99, 'Orfan Financiero');
+DO \$\$
+DECLARE
+    v_orphans integer;
+BEGIN
+    SELECT count(*) INTO v_orphans FROM (
+        SELECT f.patient_id
+        FROM patients_financial f
+        LEFT JOIN patients_public p USING (patient_id)
+        WHERE p.patient_id IS NULL
+    ) o;
+    IF v_orphans <> 1 THEN
+        RAISE EXCEPTION 'FAIL: huerfano financiero no detectado (v_orphans=%)', v_orphans;
+    END IF;
+    RAISE NOTICE 'ORPHAN_FINANCIAL_DETECTED';
+END
+\$\$;
+ROLLBACK;
+SQL
+    )"
+    if ! printf '%s\n' "$out" | grep -Fq "ORPHAN_FINANCIAL_DETECTED"; then
+        fail "$label"
+    fi
+    echo "OK: $label"
+}
+
 compose up -d --build --wait --wait-timeout 180 fragment-public fragment-financial fragmentation-coordinator
 
-echo "==> Datos en los fragmentos"
+echo "==> Datos en los fragmentos (mismos patient_id en ambos)"
 PUBLIC_COUNT="$(query fragment-public "$DB_USER" "$PUBLIC_DB" "SELECT count(*) FROM patients_public")"
 assert_eq "$PUBLIC_COUNT" "6" "fragment-public contiene 6 registros"
 
@@ -63,9 +150,16 @@ assert_eq "$COORD_PUBLIC_COUNT" "6" "coordinador lee tabla remota publica"
 COORD_FINANCIAL_COUNT="$(query fragmentation-coordinator "$DB_USER" "$COORDINATOR_DB" "SELECT count(*) FROM patients_financial")"
 assert_eq "$COORD_FINANCIAL_COUNT" "6" "coordinador lee tabla remota financiera"
 
+echo "==> Conjuntos de llaves identicos en estado normal"
+assert_eq "$(query fragmentation-coordinator "$DB_USER" "$COORDINATOR_DB" "SELECT patient_id FROM patients_public EXCEPT SELECT patient_id FROM patients_financial")" "" "EXCEPT publico menos financiero vacio"
+assert_eq "$(query fragmentation-coordinator "$DB_USER" "$COORDINATOR_DB" "SELECT patient_id FROM patients_financial EXCEPT SELECT patient_id FROM patients_public")" "" "EXCEPT financiero menos publico vacio"
+assert_eq "$(query fragmentation-coordinator "$DB_USER" "$COORDINATOR_DB" "SELECT (SELECT count(*) FROM patients_public) - (SELECT count(*) FROM patients_financial)")" "0" "cantidad de llaves publicas igual a financieras"
+assert_eq "$(public_orphans)" "0" "sin huerfanos publicos en el estado normal"
+assert_eq "$(financial_orphans)" "0" "sin huerfanos financieros en el estado normal"
+
 echo "==> Reconstruccion completa del paciente"
 RECON_COUNT="$(query fragmentation-coordinator "$DB_USER" "$COORDINATOR_DB" "SELECT count(*) FROM patients_full")"
-assert_eq "$RECON_COUNT" "5" "patients_full reconstruye 5 pacientes completos"
+assert_eq "$RECON_COUNT" "6" "patients_full reconstruye 6 pacientes completos"
 
 RECON_COMPLETE="$(query fragmentation-coordinator "$DB_USER" "$COORDINATOR_DB" "
     SELECT count(*) FROM patients_full
@@ -89,42 +183,12 @@ RECON_SAMPLE="$(query fragmentation-coordinator "$DB_USER" "$COORDINATOR_DB" "
 ")"
 assert_eq "$RECON_SAMPLE" "Luis Ramirez:VidaPlus:250.75" "paciente 2 reconstruido con datos publicos y financieros"
 
-echo "==> Registros huerfanos"
-PUBLIC_ORPHAN_COUNT="$(query fragmentation-coordinator "$DB_USER" "$COORDINATOR_DB" "
-    SELECT count(*) FROM (
-        SELECT p.patient_id
-        FROM patients_public p
-        LEFT JOIN patients_financial f USING (patient_id)
-        WHERE f.patient_id IS NULL
-    ) orphans
-")"
-assert_eq "$PUBLIC_ORPHAN_COUNT" "1" "1 huerfano solo en fragment-public"
-
-PUBLIC_ORPHAN_ID="$(query fragmentation-coordinator "$DB_USER" "$COORDINATOR_DB" "
-    SELECT p.patient_id
-    FROM patients_public p
-    LEFT JOIN patients_financial f USING (patient_id)
-    WHERE f.patient_id IS NULL
-")"
-assert_eq "$PUBLIC_ORPHAN_ID" "6" "huerfano publico es patient_id 6"
-
-FINANCIAL_ORPHAN_COUNT="$(query fragmentation-coordinator "$DB_USER" "$COORDINATOR_DB" "
-    SELECT count(*) FROM (
-        SELECT f.patient_id
-        FROM patients_financial f
-        LEFT JOIN patients_public p USING (patient_id)
-        WHERE p.patient_id IS NULL
-    ) orphans
-")"
-assert_eq "$FINANCIAL_ORPHAN_COUNT" "1" "1 huerfano solo en fragment-financial"
-
-FINANCIAL_ORPHAN_ID="$(query fragmentation-coordinator "$DB_USER" "$COORDINATOR_DB" "
-    SELECT f.patient_id
-    FROM patients_financial f
-    LEFT JOIN patients_public p USING (patient_id)
-    WHERE p.patient_id IS NULL
-")"
-assert_eq "$FINANCIAL_ORPHAN_ID" "7" "huerfano financiero es patient_id 7"
+echo "==> Huerfanos como pruebas negativas temporales (ROLLBACK)"
+expect_public_orphan_rejected "huerfano publico detectado y revertido (ROLLBACK)"
+expect_financial_orphan_rejected "huerfano financiero detectado y revertido (ROLLBACK)"
+assert_eq "$(public_orphans)" "0" "sin rastros de huerfano publico tras ROLLBACK"
+assert_eq "$(financial_orphans)" "0" "sin rastros de huerfano financiero tras ROLLBACK"
+assert_eq "$(query fragmentation-coordinator "$DB_USER" "$COORDINATOR_DB" "SELECT count(*) FROM patients_full")" "6" "reconstruccion intacta tras las negativas"
 
 echo "==> Restriccion del rol publico en el coordinador"
 COORD_PUBLIC_ROLE_COUNT="$(query fragmentation-coordinator public_role "$COORDINATOR_DB" "SELECT count(*) FROM patients_public")"
