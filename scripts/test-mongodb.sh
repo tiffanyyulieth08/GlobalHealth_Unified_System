@@ -20,16 +20,23 @@ if [ -n "${MONGODB_URI:-}" ]; then
             "db.getSiblingDB('$MONGODB_DB').dropDatabase()" >/dev/null
     }
 else
-    docker compose up -d mongodb
+    compose() {
+        if [ -n "${MONGODB_COMPOSE_PROJECT:-}" ]; then
+            docker compose -p "$MONGODB_COMPOSE_PROJECT" "$@"
+        else
+            docker compose "$@"
+        fi
+    }
+    compose up -d --wait --wait-timeout 120 mongodb
     run_file() {
-        docker compose cp "$1" mongodb:/tmp/globalhealth-mongodb-test.js
-        MSYS_NO_PATHCONV=1 docker compose exec -T \
+        compose cp "$1" mongodb:/tmp/globalhealth-mongodb-test.js
+        MSYS_NO_PATHCONV=1 compose exec -T \
             -e MONGODB_DB="$MONGODB_DB" \
             mongodb mongosh "mongodb://localhost:27017/$MONGODB_DB" \
             --quiet --file /tmp/globalhealth-mongodb-test.js
     }
     cleanup() {
-        docker compose exec -T mongodb \
+        compose exec -T mongodb \
             mongosh "mongodb://localhost:27017/$MONGODB_DB" --quiet \
             --eval "db.dropDatabase()" >/dev/null
     }

@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import os
 from contextlib import asynccontextmanager
 from typing import AsyncIterator
@@ -10,6 +11,8 @@ from fastapi.responses import JSONResponse
 
 from app.mongodb import close_mongodb, connect_mongodb
 from app.routers.telemetry import router as telemetry_router
+
+logger = logging.getLogger("app.health")
 
 
 @asynccontextmanager
@@ -56,10 +59,11 @@ async def database_probe(
     try:
         in_recovery = await pool.fetchval("SELECT pg_is_in_recovery()")
     except Exception as exc:
+        logger.warning("database probe failed: %s", exc)
         return {
             "status": "unhealthy",
             "in_recovery": None,
-            "error": str(exc),
+            "error": "database connection unavailable",
         }
     return {
         "status": "healthy" if in_recovery == expected_recovery else "unhealthy",

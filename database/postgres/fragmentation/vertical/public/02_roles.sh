@@ -9,5 +9,5 @@ CREATE ROLE public_role LOGIN PASSWORD :'fdw_password';
 CREATE ROLE fdw_reader LOGIN PASSWORD :'fdw_password';
 
 GRANT SELECT ON patients_public TO public_role;
-GRANT SELECT ON patients_public TO fdw_reader;
+GRANT SELECT, INSERT ON patients_public TO fdw_reader;
 EOSQL

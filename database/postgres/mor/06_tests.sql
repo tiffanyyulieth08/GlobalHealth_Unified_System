@@ -21,14 +21,21 @@ CREATE OR REPLACE FUNCTION mor_expects_error(p_sql text, p_message text)
 RETURNS void
 LANGUAGE plpgsql
 AS $$
+DECLARE
+    v_rejected boolean := false;
 BEGIN
     BEGIN
         EXECUTE p_sql;
-        RAISE EXCEPTION 'FAIL: %', p_message;
     EXCEPTION
         WHEN OTHERS THEN
-            RAISE NOTICE 'PASS: %', p_message;
+            v_rejected := true;
     END;
+
+    IF v_rejected THEN
+        RAISE NOTICE 'PASS: %', p_message;
+    ELSE
+        RAISE EXCEPTION 'FAIL: % (la operacion no fue rechazada por la base)', p_message;
+    END IF;
 END;
 $$;
 

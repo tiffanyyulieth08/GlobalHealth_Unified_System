@@ -59,6 +59,12 @@ CREATE FUNCTION insert_patient(
     p_region text
 ) RETURNS void AS $$
 BEGIN
+    IF EXISTS (SELECT 1 FROM patients_north WHERE patient_id = p_patient_id)
+       OR EXISTS (SELECT 1 FROM patients_south WHERE patient_id = p_patient_id)
+    THEN
+        RAISE EXCEPTION 'patient_id % already exists across fragments', p_patient_id;
+    END IF;
+
     IF p_region = 'NORTH' THEN
         INSERT INTO patients_north (patient_id, full_name, phone, email, address, region)
         VALUES (p_patient_id, p_full_name, p_phone, p_email, p_address, p_region);

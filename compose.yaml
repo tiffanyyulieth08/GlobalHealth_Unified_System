@@ -1,5 +1,3 @@
-name: globalhealth
-
 services:
   mongodb:
     image: mongo:8.0
@@ -26,7 +24,7 @@ services:
     build:
       context: .
       dockerfile: docker/postgres/Dockerfile
-    image: globalhealth-postgres:local
+    image: ${COMPOSE_PROJECT_NAME:-globalhealth}-postgres:local
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-globalhealth}
       POSTGRES_USER: ${POSTGRES_USER:-globalhealth}
@@ -54,7 +52,7 @@ services:
     restart: unless-stopped
 
   postgres-replica:
-    image: globalhealth-postgres:local
+    image: ${COMPOSE_PROJECT_NAME:-globalhealth}-postgres:local
     depends_on:
       postgres-primary:
         condition: service_healthy
@@ -73,10 +71,10 @@ services:
     healthcheck:
       test:
         - CMD-SHELL
-        - pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}" && test "$$(psql -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}" -tAc 'SELECT pg_is_in_recovery()')" = t
+        - pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}" && test "$$(psql -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}" -tAc 'SELECT pg_is_in_recovery()')" = t && test "$$(psql -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}" -tAc 'SELECT status FROM pg_stat_wal_receiver')" = streaming
       interval: 5s
       timeout: 5s
-      retries: 10
+      retries: 30
       start_period: 10s
     networks:
       - globalhealth-network
@@ -130,7 +128,7 @@ services:
     build:
       context: .
       dockerfile: docker/postgres/fragmentation/coordinator/Dockerfile
-    image: globalhealth-fragmentation-coordinator:local
+    image: ${COMPOSE_PROJECT_NAME:-globalhealth}-fragmentation-coordinator:local
     depends_on:
       fragment-public:
         condition: service_healthy
@@ -206,7 +204,7 @@ services:
     build:
       context: .
       dockerfile: docker/postgres/fragmentation/coordinator/Dockerfile
-    image: globalhealth-fragmentation-coordinator:local
+    image: ${COMPOSE_PROJECT_NAME:-globalhealth}-fragmentation-coordinator:local
     depends_on:
       fragment-north:
         condition: service_healthy
@@ -277,10 +275,8 @@ services:
 
 networks:
   globalhealth-network:
-    name: ${GLOBALHEALTH_NETWORK_NAME:-globalhealth-network}
     internal: true
   globalhealth-edge-network:
-    name: globalhealth-edge-network
     driver: bridge
 
 volumes:

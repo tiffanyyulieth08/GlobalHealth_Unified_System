@@ -145,4 +145,38 @@ BEGIN
 END;
 $$;
 
+DO $$
+DECLARE
+    v_record_id bigint;
+BEGIN
+    SELECT record_id INTO v_record_id FROM clinical_records_xml LIMIT 1;
+
+    -- Eliminar un nodo obligatorio (<patient>) debe ser rechazado por el
+    -- trigger de validacion; el documento almacenado no debe modificarse.
+    BEGIN
+        UPDATE clinical_records_xml
+        SET clinical_document = xml_remove_nodes(
+            clinical_document,
+            '/gh:clinicalRecord/gh:patient',
+            '{"gh":"https://globalhealth.example/xml/clinical-record/v1"}'
+        )
+        WHERE record_id = v_record_id;
+        RAISE EXCEPTION 'Removal of a required node was accepted';
+    EXCEPTION
+        WHEN OTHERS THEN
+            IF SQLERRM NOT LIKE '%XML does not conform to clinical-record-v1:%' THEN
+                RAISE;
+            END IF;
+    END;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM clinical_record_xpath
+        WHERE record_id = v_record_id
+          AND patient_name = 'Ana Rodríguez'
+    ) THEN
+        RAISE EXCEPTION 'Required node removal modified the stored document';
+    END IF;
+END;
+$$;
+
 SELECT 'All XML/XSD tests passed.' AS result;

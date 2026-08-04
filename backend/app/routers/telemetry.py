@@ -168,8 +168,17 @@ def patient_telemetry(patient_id: str, database: MongoDatabase) -> dict[str, Any
                     {
                         "$lookup": {
                             "from": "sensor_logs",
-                            "localField": "sessionId",
-                            "foreignField": "sessionId",
+                            "let": {"sessionId": "$sessionId"},
+                            "pipeline": [
+                                {
+                                    "$match": {
+                                        "$expr": {
+                                            "$eq": ["$sessionId", "$$sessionId"]
+                                        }
+                                    }
+                                },
+                                {"$project": {"_id": 0}},
+                            ],
                             "as": "logs",
                         }
                     },
