@@ -69,9 +69,9 @@ Copy-Item .env.example .env
 Antes de iniciar los servicios, actualiza en `.env` al menos
 `POSTGRES_PASSWORD` y `POSTGRES_REPLICATION_PASSWORD`. Conserva
 `POSTGRES_WRITE_URL` apuntando al primario y `POSTGRES_READ_URL` apuntando a la
-replica. `MONGODB_URI` usa por defecto el servicio local sin credenciales; para
-Atlas debe reemplazarse mediante una variable de entorno o un gestor de
-secretos.
+replica. Para MongoDB local conserva `MONGODB_PROVIDER=local`. Para Atlas usa
+`MONGODB_PROVIDER=atlas` y proporciona `MONGODB_URI` mediante una variable de
+entorno o un gestor de secretos. La URI nunca debe entrar en Git.
 
 ## Uso con Docker Compose
 
@@ -85,6 +85,14 @@ Iniciar los servicios:
 
 ```bash
 docker compose up -d
+```
+
+Para Atlas, el override no inicia MongoDB local cuando se solicita únicamente
+el backend:
+
+```bash
+MONGODB_URI="$MONGODB_URI" \
+  docker compose -f compose.yaml -f compose.atlas.yaml up -d --build --wait backend
 ```
 
 Tambien se puede crear `.env`, construir e iniciar en un solo paso:
@@ -180,12 +188,15 @@ XML_XSD_PSQL="psql -h localhost -U globalhealth" XML_XSD_DB=globalhealth_xml_xsd
   `GET /health/databases` comprueba el rol de ambas instancias.
 - **MongoDB**: las colecciones `patients`, `sessions` y `sensor_logs` incluyen
   validadores, relaciones logicas mediante `patientId` y `sessionId`, indices,
-  semillas, CRUD, filtros, limites, ordenamiento y agregaciones. El pipeline
+  semillas, CRUD, filtros por fecha, limites, ordenamiento y agregaciones. El pipeline
   paciente → sesiones → logs esta disponible en los scripts y mediante
-  `GET /api/patients/{patientId}/telemetry`.
+  `GET /api/patients/{patientId}/telemetry`. El resumen para la defensa está en
+  `GET /api/telemetry/summary` y muestra agrupación por paciente/sensor junto
+  con un `$lookup` del paciente.
 - **FastAPI**: integra el router de telemetria MongoDB junto con los pools de
   escritura y lectura PostgreSQL. La conexion MongoDB se configura con
-  `MONGODB_URI` y `MONGODB_DB`.
+  `MONGODB_PROVIDER`, `MONGODB_URI` y `MONGODB_DB`. El arranque exige un `ping`
+  exitoso y el endpoint de salud nunca devuelve la URI.
 
 #### Probar replicacion
 

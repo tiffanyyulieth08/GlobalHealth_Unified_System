@@ -48,8 +48,9 @@ Los datos persistentes usan volúmenes Docker. La configuración está en
 Las escrituras SQL usan el pool creado desde `POSTGRES_WRITE_URL`, que apunta a
 `postgres-primary`. El endpoint `/dashboard` usa exclusivamente el pool creado
 desde `POSTGRES_READ_URL`, que apunta a `postgres-replica`. La API de telemetría
-usa `MONGODB_URI` y `MONGODB_DB`. No existe conmutación automática ni promoción
-de la réplica.
+usa `MONGODB_PROVIDER`, `MONGODB_URI` y `MONGODB_DB`, y comprueba MongoDB con
+un `ping` al iniciar. No existe conmutación automática ni promoción de la
+réplica.
 
 ## 3. Modelo objeto-relacional (MOR)
 
@@ -284,14 +285,14 @@ restrictiva. Definir la URI sin imprimirla:
 ```bash
 export MONGODB_URI='mongodb+srv://USUARIO:CONTRASENA@CLUSTER/globalhealth?retryWrites=true&w=majority'
 export MONGODB_DB='globalhealth'
-mongosh "$MONGODB_URI" --quiet --file database/mongodb/01_collections.js
-mongosh "$MONGODB_URI" --quiet --file database/mongodb/02_seed.js
-mongosh "$MONGODB_URI" --quiet --file database/mongodb/03_operations.js
-mongosh "$MONGODB_URI" --quiet --file database/mongodb/04_aggregations.js
+export MONGODB_PROVIDER='atlas'
+sh scripts/test-mongodb-atlas.sh
 ```
 
 En producción, la URI debe provenir de un gestor de secretos, no de Git ni de
-la línea de comandos persistida por el shell.
+la línea de comandos persistida por el shell. `compose.atlas.yaml` cambia el
+backend a Atlas; al ejecutar `up ... backend`, el contenedor MongoDB local no es
+una dependencia.
 
 ## 13. Comandos de pruebas
 
@@ -301,6 +302,7 @@ Cada script devuelve un código distinto de cero cuando una aserción falla.
 sh scripts/test-mor.sh
 sh scripts/test-xml-xsd.sh
 sh scripts/test-mongodb.sh
+sh scripts/test-mongodb-atlas.sh
 sh scripts/test-replication.sh
 sh scripts/replication-status.sh
 sh scripts/test-fragmentation-vertical.sh
@@ -322,7 +324,7 @@ Pruebas con clientes externos:
 ```bash
 MOR_PSQL="psql -h localhost -U globalhealth" MOR_DB=globalhealth_mor_test sh scripts/test-mor.sh
 XML_XSD_PSQL="psql -h localhost -U globalhealth" XML_XSD_DB=globalhealth_xml_xsd_test sh scripts/test-xml-xsd.sh
-MONGODB_URI="$MONGODB_URI" MONGODB_DB=globalhealth_test sh scripts/test-mongodb.sh
+MONGODB_URI="$MONGODB_URI" sh scripts/test-mongodb-atlas.sh
 ```
 
 No se debe dirigir una prueba destructiva a una base con datos que deban

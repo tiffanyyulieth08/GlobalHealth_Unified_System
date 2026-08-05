@@ -22,6 +22,7 @@ export POSTGRES_REPLICATION_PASSWORD="replication-$RUN_ID-integration-secret"
 export FRAGMENT_FDW_PASSWORD="vertical-$RUN_ID-integration-secret"
 export FRAGMENT_HORIZONTAL_FDW_PASSWORD="horizontal-$RUN_ID-integration-secret"
 export MONGODB_DB="$MONGO_DB"
+export MONGODB_PROVIDER="local"
 export MONGODB_URI="mongodb://mongodb:27017/$MONGO_DB"
 
 compose() {
@@ -76,6 +77,7 @@ trap cleanup EXIT INT TERM
 mkdir -p "$EVIDENCE_DIR"
 
 printf '==> Iniciando PostgreSQL Primary/Replica, MongoDB y backend\n'
+compose up -d --wait --wait-timeout 120 mongodb
 compose up -d --build --wait --wait-timeout 240 backend
 
 printf '==> Preparando MOR y XML/XSD en PostgreSQL Primary\n'
@@ -119,6 +121,30 @@ require_text "$EVIDENCE_DIR/patient.json" '"patientId":"INT-P001"' "paciente cre
 require_text "$EVIDENCE_DIR/session.json" '"sessionId":"INT-S001"' "sesion creada"
 require_text "$EVIDENCE_DIR/sensor-log-1.json" '"logId":"INT-L001"' "primer log de sensor insertado"
 require_text "$EVIDENCE_DIR/sensor-log-2.json" '"logId":"INT-L002"' "segundo log de sensor insertado"
+
+printf '==> Verificando salud MongoDB sanitizada\n'
+curl --silent --show-error --fail-with-body \
+    "$BASE_URL/api/mongodb/health" \
+    --output "$EVIDENCE_DIR/mongodb-health.json"
+require_text "$EVIDENCE_DIR/mongodb-health.json" '"status":"healthy"' "MongoDB saludable"
+require_text "$EVIDENCE_DIR/mongodb-health.json" '"provider":"local"' "proveedor MongoDB local"
+require_text "$EVIDENCE_DIR/mongodb-health.json" '"database":"globalhealth_integration"' "base MongoDB declarada"
+
+printf '==> Filtrando logs por rango temporal\n'
+curl --silent --show-error --fail-with-body \
+    "$BASE_URL/api/sensor-logs?recordedFrom=2026-08-01T15%3A01%3A30Z&recordedTo=2026-08-01T15%3A02%3A30Z&limit=10" \
+    --output "$EVIDENCE_DIR/sensor-logs-filtered.json"
+require_text "$EVIDENCE_DIR/sensor-logs-filtered.json" '"logId":"INT-L002"' "filtro temporal incluye log esperado"
+if grep -Fq '"logId":"INT-L001"' "$EVIDENCE_DIR/sensor-logs-filtered.json"; then
+    fail "filtro temporal incluyo un log fuera del rango"
+fi
+
+printf '==> Ejecutando resumen agregado por paciente y sensor\n'
+curl --silent --show-error --fail-with-body \
+    "$BASE_URL/api/telemetry/summary?patientId=INT-P001&limit=10" \
+    --output "$EVIDENCE_DIR/telemetry-summary.json"
+require_text "$EVIDENCE_DIR/telemetry-summary.json" '"sampleCount":1' "resumen cuenta muestras"
+require_text "$EVIDENCE_DIR/telemetry-summary.json" '"patientName":"Paciente Integracion"' "lookup agrega nombre del paciente"
 
 printf '==> Ejecutando lookup paciente -> sesiones -> logs\n'
 curl --silent --show-error --fail-with-body \

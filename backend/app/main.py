@@ -5,14 +5,16 @@ from contextlib import asynccontextmanager
 from typing import AsyncIterator
 
 import asyncpg
-from fastapi import FastAPI
-from fastapi import Request
+from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
+from pymongo.errors import PyMongoError
 
+from app.config import get_settings
 from app.mongodb import close_mongodb, connect_mongodb
 from app.routers.telemetry import router as telemetry_router
 
-logger = logging.getLogger("app.health")
+logger = logging.getLogger("app")
+settings = get_settings()
 
 
 @asynccontextmanager
@@ -31,8 +33,8 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     except Exception:
         await app.state.write_pool.close()
         raise
-    connect_mongodb()
     try:
+        connect_mongodb()
         yield
     finally:
         close_mongodb()
@@ -41,10 +43,35 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
 
 app = FastAPI(
-    title=os.getenv("APP_NAME", "GlobalHealth Unified System"),
+    title=settings.app_name,
+    debug=settings.app_debug,
     lifespan=lifespan,
 )
 app.include_router(telemetry_router)
+
+
+@app.exception_handler(PyMongoError)
+async def mongodb_error_handler(
+    request: Request,
+    exception: PyMongoError,
+) -> JSONResponse:
+    logger.warning("MongoDB operation failed")
+    return JSONResponse(
+        {"detail": "MongoDB operation failed"},
+        status_code=503,
+    )
+
+
+@app.exception_handler(asyncpg.PostgresError)
+async def postgres_error_handler(
+    request: Request,
+    exception: asyncpg.PostgresError,
+) -> JSONResponse:
+    logger.warning("PostgreSQL operation failed")
+    return JSONResponse(
+        {"detail": "PostgreSQL operation failed"},
+        status_code=503,
+    )
 
 
 @app.get("/health")
@@ -58,8 +85,8 @@ async def database_probe(
 ) -> dict[str, bool | str | None]:
     try:
         in_recovery = await pool.fetchval("SELECT pg_is_in_recovery()")
-    except Exception as exc:
-        logger.warning("database probe failed: %s", exc)
+    except Exception:
+        logger.warning("database probe failed")
         return {
             "status": "unhealthy",
             "in_recovery": None,

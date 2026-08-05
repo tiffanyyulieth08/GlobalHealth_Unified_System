@@ -1,0 +1,5 @@
+services:
+  backend:
+    environment:
+      MONGODB_PROVIDER: atlas
+      MONGODB_URI: ${MONGODB_URI:?MONGODB_URI de Atlas no proporcionada}
