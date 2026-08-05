@@ -1,0 +1,13 @@
+timestamp=2026-08-05T14:37:14-06:00
+commit=36d75b21a2e63f32a53797bcee63d4c95fb84750
+branch=feature/atlas-security-final-release
+result=PASS
+tracked_real_env_files=0
+credential_bearing_uris=0
+private_keys=0
+shell_scripts_lf=PASS
+shell_syntax=PASS
+duplicate_requirements=0
+compose_base_config=PASS
+compose_atlas_config=PASS
+git_diff_check=PASS

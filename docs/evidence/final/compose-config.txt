@@ -1,0 +1,6 @@
+timestamp=2026-08-05T14:34:33-06:00
+commit=36d75b21a2e63f32a53797bcee63d4c95fb84750
+branch=feature/atlas-security-final-release
+result=PASS
+command=docker compose -p globalhealth-final-36d75b2 config --quiet
+atlas_override=PASS with credential-free placeholder URI

@@ -30,6 +30,7 @@ Thumbs.db
 # Logs
 *.log
 logs/
+!docs/evidence/final/*.log
 
 # Docker / datos locales
 docker-data/

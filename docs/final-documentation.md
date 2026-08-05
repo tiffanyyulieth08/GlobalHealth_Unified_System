@@ -2,12 +2,13 @@
 
 ## 1. Alcance y criterio de evidencia
 
-Este documento describe únicamente lo implementado en el repositorio. Los comandos
-de prueba indican cómo verificarlo, pero su presencia no equivale a una ejecución
-exitosa. La evidencia de integración se genera al ejecutar
-`scripts/test-all.sh`; actualmente `docs/evidence/integration/` solo contiene el
-catálogo de archivos esperados. En cambio,
-`docs/evidence/replication-chaos/` sí contiene artefactos de una ejecución previa.
+Este documento describe únicamente lo implementado en el repositorio. Los
+comandos indican cómo verificarlo, pero su presencia no equivale a una ejecución
+exitosa. `docs/evidence/integration/` y
+`docs/evidence/replication-chaos/` son evidencia histórica; no prueban la versión
+actual. La entrega vigente se registra en `docs/evidence/final/` con fecha, rama,
+commit probado y resultado. Un bloqueo queda documentado como bloqueo, nunca como
+`PASS`.
 
 ## 2. Arquitectura completa
 
@@ -42,6 +43,19 @@ Los datos persistentes usan volúmenes Docker. La configuración está en
 | Fragmentación vertical | Separación de datos públicos y financieros | `database/postgres/fragmentation/vertical/` |
 | Fragmentación horizontal | Separación de pacientes NORTH y SOUTH | `database/postgres/fragmentation/horizontal/` |
 | Coordinadores | Reconstrucción mediante `postgres_fdw` | scripts `coordinator/01_setup.sh` |
+
+### Servicios Docker
+
+| Servicio | Rol | Persistencia/puerto |
+| --- | --- | --- |
+| `postgres-primary` | Escrituras y emisor WAL | volumen `postgres-primary-data`, sin puerto host |
+| `postgres-replica` | Hot standby y lecturas | volumen `postgres-replica-data`, sin puerto host |
+| `mongodb` | Telemetría local | volumen `mongodb-data`, sin puerto host |
+| `backend` | API y separación de pools | puerto `${APP_PORT:-8000}` |
+| `fragment-public` / `fragment-financial` | Fragmentos verticales | un volumen por nodo |
+| `fragmentation-coordinator` | Reconstrucción vertical | volumen propio |
+| `fragment-north` / `fragment-south` | Fragmentos horizontales | un volumen por nodo |
+| `fragmentation-coordinator-horizontal` | Reconstrucción horizontal | volumen propio |
 
 ### Flujo de una operación
 
@@ -209,22 +223,46 @@ entre nodos.
 - Atlas no elimina obligaciones de gobierno de datos clínicos, clasificación,
   retención, auditoría y residencia.
 
+### Cotización cuantitativa
+
+Consulta realizada el **5 de agosto de 2026**, en **USD antes de impuestos**.
+Es una comparación para desarrollo/prueba de bajo tráfico, no un dimensionado
+clínico productivo. La alternativa local significa MongoDB Community
+autoadministrado en un Droplet Basic de DigitalOcean; Atlas usa tier Flex sobre
+AWS en una región de Estados Unidos admitida. Supuestos: 30 días, hasta 5 GB de
+datos, hasta 100 operaciones/s, sin transferencia excedente y cuatro horas de
+administración local o una hora de administración Atlas al mes, valoradas en
+USD 25/h. La tarifa horaria administrativa es un supuesto explícito para hacer
+visible el trabajo, no una cotización del proveedor.
+
+| Alternativa | Cómputo mensual | Almacenamiento | Backups | Transferencia | Administración estimada | Total |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| MongoDB local — DigitalOcean Basic, 1 vCPU/2 GiB, región NYC | USD 12.00 | 50 GiB SSD incluidos: USD 0.00 | backup diario, 30%: USD 3.60 | 2,000 GiB incluidos: USD 0.00 | 4 h × USD 25: USD 100.00 | **USD 115.60** |
+| Atlas — AWS, Flex, región de EE. UU., carga base | USD 8.00 | 5 GB incluidos: USD 0.00 | 8 snapshots diarios incluidos: USD 0.00 | ilimitada incluida: USD 0.00 | 1 h × USD 25: USD 25.00 | **USD 33.00** |
+
+Precios verificados: DigitalOcean publica USD 12/mes para 1 vCPU, 2 GiB RAM,
+50 GiB SSD y 2,000 GiB de transferencia; el backup diario cuesta 30% del
+Droplet. Atlas Flex publica USD 8 por 30 días en la carga base, incluye 5 GB,
+100 ops/s y transferencia ilimitada, con tope de USD 30; Atlas conserva los
+últimos ocho snapshots diarios. La región no cambia el precio publicado del
+Droplet Basic; Atlas Flex solo admite un subconjunto de regiones. Si la carga
+supera 100 ops/s, Atlas aumenta hasta USD 30 y el total con una hora de
+administración sería USD 55.
+
+Fuentes consultadas el mismo día:
+
+- https://www.digitalocean.com/pricing/droplets
+- https://www.digitalocean.com/pricing/backups
+- https://www.mongodb.com/docs/atlas/billing/atlas-flex-costs/
+- https://www.mongodb.com/docs/atlas/backup/cloud-backup/flex-cluster-backup/
+
 ### Decisión recomendada
 
-Para desarrollo académico y pruebas locales, el contenedor MongoDB evita costo
-y dependencia de Internet. Para producción, Atlas aporta valor si el costo
-mensual total de la configuración elegida es menor que operar guardias,
-parches, respaldo, restauración, monitoreo y alta disponibilidad internamente.
-No se fija un precio en este documento porque cambia por región y
-configuración: debe obtenerse del estimador mostrado por Atlas y validarse con
-una prueba de carga. Se deben presupuestar por separado cómputo, almacenamiento,
-backups y transferencia.
-
-Fuentes oficiales consultadas:
-
-- https://www.mongodb.com/docs/atlas/billing/
-- https://www.mongodb.com/docs/atlas/billing/cluster-configuration-costs/
-- https://www.mongodb.com/docs/atlas/billing/data-transfer-costs/
+Para trabajo académico sin Internet, Compose local conserva reproducibilidad.
+Para desarrollo conectado de baja carga, Atlas Flex reduce el costo operativo
+estimado, pero sus límites —5 GB, 500 ops/s máximas, sin backup continuo ni
+PITR— impiden extrapolar esta tabla a producción clínica. Producción requiere
+una cotización dedicada y supuestos de RPO/RTO, residencia y auditoría.
 
 ## 12. Despliegue completo
 
@@ -357,7 +395,8 @@ El script:
 5. exige HTTP 503 al intentar una escritura;
 6. reinicia Primary;
 7. exige streaming en emisor y receptor;
-8. guarda artefactos y usa un `trap` para restaurar Primary ante error.
+8. realiza una escritura nueva y la confirma en Replica;
+9. guarda artefactos y usa un `trap` para restaurar Primary ante error.
 
 La evidencia versionada registra una ejecución previa con salud HTTP 200,
 réplica `in_recovery=true`, dato replicado, dashboard HTTP 200 durante la caída,
@@ -451,8 +490,8 @@ resultados solo se declaran cuando existe el artefacto generado.
 | Requerimiento | Implementación | Prueba | Evidencia |
 | --- | --- | --- | --- |
 | Arquitectura desplegable | `compose.yaml`, `backend/Dockerfile`, `docker/postgres/` | `docker compose config`, `docker compose ps` | Estado observado por el operador |
-| MOR | `database/postgres/mor/01_types.sql` a `05_crud.sql` | `scripts/test-mor.sh`, `06_tests.sql` | Salida de consola; no se versiona actualmente |
-| XML/XSD | `database/postgres/xml/`, `clinical-record-v1.xsd` | `scripts/test-xml-xsd.sh`, `04_tests.sql` | Salida de consola; no se versiona actualmente |
+| MOR | `database/postgres/mor/01_types.sql` a `05_crud.sql` | `scripts/test-mor.sh`, `06_tests.sql` | `docs/evidence/final/mor-test.log` |
+| XML/XSD | `database/postgres/xml/`, `clinical-record-v1.xsd` | `scripts/test-xml-xsd.sh`, `04_tests.sql` | `docs/evidence/final/xml-xsd-test.log` |
 | MongoDB | `database/mongodb/01_collections.js` a `04_aggregations.js` | `scripts/test-mongodb.sh`, `05_tests.js` | Salida de consola; integración puede generar JSON |
 | API MongoDB | `backend/app/routers/telemetry.py` | `tests/integration/run.sh` | `docs/evidence/integration/*.json` después de ejecutar |
 | Primary/Replica | `compose.yaml`, `docker/postgres/primary/`, `docker/postgres/replica/` | `scripts/test-replication.sh` | Salida de consola |
@@ -462,7 +501,7 @@ resultados solo se declaran cuando existe el artefacto generado.
 | Separación de acceso | roles de fragmentación vertical | prueba de `public_role` | Salida del script vertical |
 | Chaos Engineering | `scripts/chaos-replication.sh`, endpoint de escritura de caos | ejecución del mismo script | `docs/evidence/replication-chaos/01` a `09` |
 | No exposición de secretos | variables de entorno y revisión de respuestas/logs | bloque de seguridad de `tests/integration/run.sh` | `security.txt` después de ejecutar |
-| Despliegue Atlas | `docs/cloud/mongodb-atlas.md` | base temporal con `test-mongodb.sh` | Salida del operador |
+| Despliegue Atlas | `compose.atlas.yaml`, `docs/cloud/mongodb-atlas.md` | base temporal con `test-mongodb-atlas.sh` | `docs/evidence/final/mongodb-atlas-test.log` |
 
 ## 17. Auditoría de comandos del README
 
@@ -476,3 +515,33 @@ en FastAPI.
 `docker compose config --services` valida la sintaxis y las referencias de
 servicio sin arrancar contenedores. La ejecución funcional requiere un daemon
 Docker activo y debe comprobarse con los comandos de las secciones 12 a 14.
+
+## 18. Recuperación, diagnóstico y entrega
+
+La recuperación de Primary/Replica, incluido el reset controlado que elimina
+solo el volumen de Replica, está en
+`docs/architecture/postgresql-primary-replica.md`. Los errores de Atlas y su
+recuperación están en `docs/cloud/mongodb-atlas.md`. La guía cronometrada de
+defensa está en `docs/defense/demo-guide.md`.
+
+Para una reconstrucción total académica, confirmar primero que los datos pueden
+perderse:
+
+```bash
+docker compose down -v --remove-orphans
+docker compose up -d --build --wait --wait-timeout 240
+```
+
+Para crear el ZIP desde el directorio padre sin historial, secretos ni caché:
+
+```bash
+zip -r GlobalHealth_Unified_System.zip GlobalHealth_Unified_System \
+  -x 'GlobalHealth_Unified_System/.git/*' \
+     'GlobalHealth_Unified_System/.env' \
+     'GlobalHealth_Unified_System/.env.*' \
+     'GlobalHealth_Unified_System/**/__pycache__/*' \
+     'GlobalHealth_Unified_System/**/*.pyc'
+```
+
+Comprobar que el listado no contiene `.git/`, `.env`, claves privadas ni URI
+con credenciales. `.git` permanece intacto en el repositorio de trabajo.

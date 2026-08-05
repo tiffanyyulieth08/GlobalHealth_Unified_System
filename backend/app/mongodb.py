@@ -1,3 +1,5 @@
+import time
+
 from pymongo import MongoClient
 from pymongo.database import Database
 
@@ -19,13 +21,18 @@ def connect_mongodb() -> MongoClient:
         }
         if settings.mongodb_provider == "atlas":
             options["tls"] = True
-        candidate = MongoClient(settings.mongodb_uri, **options)
-        try:
-            candidate.admin.command("ping")
-        except Exception:
-            candidate.close()
-            raise
-        _client = candidate
+        for attempt in range(3):
+            candidate = MongoClient(settings.mongodb_uri, **options)
+            try:
+                candidate.admin.command("ping")
+            except Exception:
+                candidate.close()
+                if attempt == 2:
+                    raise
+                time.sleep(2)
+            else:
+                _client = candidate
+                break
     return _client
 
 

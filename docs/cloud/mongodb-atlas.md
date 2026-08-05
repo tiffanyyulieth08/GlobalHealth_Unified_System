@@ -79,8 +79,13 @@ BLOCKED: MONGODB_URI de Atlas no proporcionada.
 ```
 
 Una salida `PASS` solo constituye evidencia si el comando fue ejecutado con una
-URI Atlas real. No hay una ejecución Atlas exitosa versionada en este
-repositorio.
+URI Atlas real. La ejecución final sanitizada se registra en
+`docs/evidence/final/mongodb-atlas-test.log`.
+
+El backend realiza hasta tres intentos de conexión al arrancar, con una pausa
+de dos segundos entre intentos. Esto absorbe latencia transitoria de selección
+del replica set sin ocultar fallos persistentes de DNS, red, TLS o
+autenticación.
 
 ## API para la defensa
 
@@ -101,8 +106,27 @@ repositorio.
 - CORS no está habilitado porque este alcance no incluye un frontend. Si se
   añade uno, se deben declarar orígenes concretos; nunca un comodín productivo.
 
+## Recuperación y errores frecuentes
+
+| Síntoma | Causa probable | Acción |
+| --- | --- | --- |
+| `BLOCKED: MONGODB_URI ... no proporcionada` | La credencial no está en el entorno del proceso | Exportarla desde el gestor de secretos sin imprimirla y repetir la prueba. |
+| URI rechazada por el validador | No usa `mongodb+srv://` | Copiar la cadena SRV oficial de Atlas; no convertir manualmente una URI local. |
+| `ServerSelectionTimeoutError` | Lista IP, DNS o TLS | Autorizar solo la IP saliente necesaria, comprobar resolución SRV y certificados del sistema. |
+| `Authentication failed` | Usuario, contraseña o `authSource` incorrectos | Rotar la credencial y confirmar un rol `readWrite` limitado a la base. |
+| El backend inicia también MongoDB local | Se ejecutó `up` sin seleccionar servicio | Usar ambos archivos Compose y solicitar únicamente `backend`. |
+| La prueba dejó una base temporal | Interrupción antes del `trap` o falta de permiso de borrado | Buscar únicamente bases con prefijo `gh_atlas_`, confirmar su origen y eliminarlas desde Atlas. |
+
+Los clústeres Flex incluyen 5 GB, transferencia ilimitada y snapshots diarios,
+pero no backup continuo ni recuperación a un punto en el tiempo. Para requisitos
+productivos clínicos deben evaluarse un tier dedicado, retención, auditoría,
+residencia, RPO y RTO. La comparación cuantitativa y sus supuestos están en
+`docs/final-documentation.md`.
+
 ## Referencias oficiales
 
 - [Conectar a un clúster de Atlas](https://www.mongodb.com/docs/atlas/connect-to-database-deployment/)
 - [Configurar usuarios de base de datos](https://www.mongodb.com/docs/atlas/security-add-mongodb-users/)
 - [Administrar la lista de acceso IP](https://www.mongodb.com/docs/atlas/security/add-ip-address-to-list/)
+- [Costos de Atlas Flex](https://www.mongodb.com/docs/atlas/billing/atlas-flex-costs/)
+- [Backups de Atlas Flex](https://www.mongodb.com/docs/atlas/backup/cloud-backup/flex-cluster-backup/)

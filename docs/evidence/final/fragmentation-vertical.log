@@ -1,0 +1,88 @@
+timestamp=2026-08-05T12:01:22-06:00
+commit=36d75b21a2e63f32a53797bcee63d4c95fb84750
+branch=feature/atlas-security-final-release
+command=sh scripts/test-fragmentation-vertical.sh
+#1 [internal] load local bake definitions
+#1 reading from stdin 828B 0.0s done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile
+#2 transferring dockerfile: 212B 0.0s done
+#2 DONE 0.0s
+
+#3 [internal] load metadata for docker.io/library/postgres:16-bookworm
+#3 DONE 0.1s
+
+#4 [internal] load .dockerignore
+#4 transferring context: 2B done
+#4 DONE 0.0s
+
+#5 [1/2] FROM docker.io/library/postgres:16-bookworm@sha256:64154d0babcb1741988719e703419af0382b19953706149f9872fbd0f438efa8
+#5 resolve docker.io/library/postgres:16-bookworm@sha256:64154d0babcb1741988719e703419af0382b19953706149f9872fbd0f438efa8 0.1s done
+#5 DONE 0.1s
+
+#6 [2/2] RUN apt-get update     && apt-get install --no-install-recommends -y         postgresql-contrib-16     && rm -rf /var/lib/apt/lists/*
+#6 CACHED
+
+#7 exporting to image
+#7 exporting layers done
+#7 exporting manifest sha256:315d60626c50f09aa3211e2758d8c37c08361c5149316306d151b0d912e7b651 done
+#7 exporting config sha256:50ac5b3e2b62beadd34166e7e7aec139d55ab7d0a09e3e975bfd6baed6e2895c done
+#7 exporting attestation manifest sha256:51bd9a6a8f261515152598f98f8eb973f4d2645a489a58b25b767b7906a6b121 0.1s done
+#7 exporting manifest list sha256:dc75bc9d6410c9044b6ab951d281f2d53fa237a64bb4f37e5b596675011ef473
+#7 exporting manifest list sha256:dc75bc9d6410c9044b6ab951d281f2d53fa237a64bb4f37e5b596675011ef473 0.0s done
+#7 naming to docker.io/library/globalhealth-final-36d75b2-fragmentation-coordinator:local done
+#7 unpacking to docker.io/library/globalhealth-final-36d75b2-fragmentation-coordinator:local 0.0s done
+#7 DONE 0.2s
+
+#8 resolving provenance for metadata file
+#8 DONE 0.0s
+ globalhealth-final-36d75b2-fragmentation-coordinator:local  Built
+ Container globalhealth-final-36d75b2-fragment-financial-1  Running
+ Container globalhealth-final-36d75b2-fragment-public-1  Running
+ Container globalhealth-final-36d75b2-fragmentation-coordinator-1  Recreate
+ Container globalhealth-final-36d75b2-fragmentation-coordinator-1  Recreated
+ Container globalhealth-final-36d75b2-fragment-financial-1  Waiting
+ Container globalhealth-final-36d75b2-fragment-public-1  Waiting
+ Container globalhealth-final-36d75b2-fragment-financial-1  Healthy
+ Container globalhealth-final-36d75b2-fragment-public-1  Healthy
+ Container globalhealth-final-36d75b2-fragmentation-coordinator-1  Starting
+ Container globalhealth-final-36d75b2-fragmentation-coordinator-1  Started
+ Container globalhealth-final-36d75b2-fragment-financial-1  Waiting
+ Container globalhealth-final-36d75b2-fragmentation-coordinator-1  Waiting
+ Container globalhealth-final-36d75b2-fragment-public-1  Waiting
+ Container globalhealth-final-36d75b2-fragment-public-1  Healthy
+ Container globalhealth-final-36d75b2-fragment-financial-1  Healthy
+ Container globalhealth-final-36d75b2-fragmentation-coordinator-1  Healthy
+==> Datos en los fragmentos (mismos patient_id en ambos)
+OK: fragment-public contiene 6 registros -> 6
+OK: fragment-financial contiene 6 registros -> 6
+==> Roles de fragmento
+OK: public_role lee datos publicos -> 6
+OK: financial_role lee datos financieros -> 6
+OK: public_role no puede leer datos financieros en fragment-financial
+==> Coordinador con postgres_fdw
+OK: coordinador lee tabla remota publica -> 6
+OK: coordinador lee tabla remota financiera -> 6
+==> Conjuntos de llaves identicos en estado normal
+OK: EXCEPT publico menos financiero vacio -> 
+OK: EXCEPT financiero menos publico vacio -> 
+OK: cantidad de llaves publicas igual a financieras -> 0
+OK: sin huerfanos publicos en el estado normal -> 0
+OK: sin huerfanos financieros en el estado normal -> 0
+==> Reconstruccion completa del paciente
+OK: patients_full reconstruye 6 pacientes completos -> 6
+OK: reconstruccion sin columnas faltantes -> 0
+OK: paciente 2 reconstruido con datos publicos y financieros -> Luis Ramirez:VidaPlus:250.75
+==> Huerfanos como pruebas negativas temporales (ROLLBACK)
+OK: huerfano publico detectado y revertido (ROLLBACK)
+OK: huerfano financiero detectado y revertido (ROLLBACK)
+OK: sin rastros de huerfano publico tras ROLLBACK -> 0
+OK: sin rastros de huerfano financiero tras ROLLBACK -> 0
+OK: reconstruccion intacta tras las negativas -> 6
+==> Restriccion del rol publico en el coordinador
+OK: public_role en coordinador lee datos publicos -> 6
+OK: public_role no puede leer informacion financiera desde el coordinador
+All fragmentation vertical tests passed.
+result=PASS
+exit_code=0

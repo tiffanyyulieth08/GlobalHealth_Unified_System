@@ -1,0 +1,210 @@
+timestamp=2026-08-05T12:00:13-06:00
+commit=36d75b21a2e63f32a53797bcee63d4c95fb84750
+branch=feature/atlas-security-final-release
+command=sh scripts/test-mongodb.sh
+ Container globalhealth-final-36d75b2-mongodb-1  Recreate
+ Container globalhealth-final-36d75b2-mongodb-1  Recreated
+ Container globalhealth-final-36d75b2-mongodb-1  Starting
+ Container globalhealth-final-36d75b2-mongodb-1  Started
+ Container globalhealth-final-36d75b2-mongodb-1  Waiting
+ Container globalhealth-final-36d75b2-mongodb-1  Healthy
+==> 01_collections.js
+ globalhealth-final-36d75b2-mongodb-1 copy database/mongodb/01_collections.js to globalhealth-final-36d75b2-mongodb-1:/tmp/globalhealth-mongodb-test.js Copying
+ globalhealth-final-36d75b2-mongodb-1 copy database/mongodb/01_collections.js to globalhealth-final-36d75b2-mongodb-1:/tmp/globalhealth-mongodb-test.js Copied
+Collections and indexes ready in globalhealth_test.
+==> 02_seed.js
+ globalhealth-final-36d75b2-mongodb-1 copy database/mongodb/02_seed.js to globalhealth-final-36d75b2-mongodb-1:/tmp/globalhealth-mongodb-test.js Copying
+ globalhealth-final-36d75b2-mongodb-1 copy database/mongodb/02_seed.js to globalhealth-final-36d75b2-mongodb-1:/tmp/globalhealth-mongodb-test.js Copied
+Seed data inserted.
+==> 03_operations.js
+ globalhealth-final-36d75b2-mongodb-1 copy database/mongodb/03_operations.js to globalhealth-final-36d75b2-mongodb-1:/tmp/globalhealth-mongodb-test.js Copying
+ globalhealth-final-36d75b2-mongodb-1 copy database/mongodb/03_operations.js to globalhealth-final-36d75b2-mongodb-1:/tmp/globalhealth-mongodb-test.js Copied
+Filtered active patients:
+[
+  {
+    patientId: 'DEMO-P001',
+    firstName: 'Lucia',
+    lastName: 'Castro',
+    dateOfBirth: ISODate('1992-06-18T00:00:00.000Z'),
+    sex: 'female',
+    active: true,
+    createdAt: ISODate('2026-08-05T18:00:27.738Z'),
+    updatedAt: ISODate('2026-08-05T18:00:27.750Z')
+  },
+  {
+    patientId: 'SEED-P001',
+    firstName: 'Ana',
+    lastName: 'Solis',
+    dateOfBirth: ISODate('1988-04-12T00:00:00.000Z'),
+    sex: 'female',
+    active: true,
+    createdAt: ISODate('2026-07-01T14:00:00.000Z')
+  },
+  {
+    patientId: 'SEED-P002',
+    firstName: 'Marco',
+    lastName: 'Vargas',
+    dateOfBirth: ISODate('1975-09-23T00:00:00.000Z'),
+    sex: 'male',
+    active: true,
+    createdAt: ISODate('2026-07-02T14:00:00.000Z')
+  }
+]
+Latest high heart-rate readings:
+[
+  {
+    logId: 'DEMO-L003',
+    sessionId: 'DEMO-S001',
+    value: 76,
+    unit: 'bpm',
+    recordedAt: ISODate('2026-07-30T15:03:00.000Z')
+  },
+  {
+    logId: 'DEMO-L002',
+    sessionId: 'DEMO-S001',
+    value: 84,
+    unit: 'bpm',
+    recordedAt: ISODate('2026-07-30T15:02:00.000Z')
+  },
+  {
+    logId: 'DEMO-L001',
+    sessionId: 'DEMO-S001',
+    value: 80,
+    unit: 'bpm',
+    recordedAt: ISODate('2026-07-30T15:01:00.000Z')
+  }
+]
+CRUD operations completed.
+==> 04_aggregations.js
+ globalhealth-final-36d75b2-mongodb-1 copy database/mongodb/04_aggregations.js to globalhealth-final-36d75b2-mongodb-1:/tmp/globalhealth-mongodb-test.js Copying
+ globalhealth-final-36d75b2-mongodb-1 copy database/mongodb/04_aggregations.js to globalhealth-final-36d75b2-mongodb-1:/tmp/globalhealth-mongodb-test.js Copied
+Telemetry summary by patient and sensor:
+[
+  {
+    samples: 3,
+    minimum: 76,
+    maximum: 84,
+    lastReadingAt: ISODate('2026-07-30T15:03:00.000Z'),
+    patientId: 'DEMO-P001',
+    sensorType: 'heart_rate',
+    average: 80
+  },
+  {
+    samples: 2,
+    minimum: 72,
+    maximum: 78,
+    lastReadingAt: ISODate('2026-07-20T08:02:00.000Z'),
+    patientId: 'SEED-P001',
+    sensorType: 'heart_rate',
+    average: 75
+  },
+  {
+    samples: 2,
+    minimum: 95,
+    maximum: 97,
+    lastReadingAt: ISODate('2026-07-21T09:02:00.000Z'),
+    patientId: 'SEED-P001',
+    sensorType: 'oxygen_saturation',
+    average: 96
+  },
+  {
+    samples: 1,
+    minimum: 37.2,
+    maximum: 37.2,
+    lastReadingAt: ISODate('2026-07-22T10:01:00.000Z'),
+    patientId: 'SEED-P002',
+    sensorType: 'temperature',
+    average: 37.2
+  }
+]
+Patient -> sessions -> sensor logs:
+[
+  {
+    patientId: 'SEED-P001',
+    firstName: 'Ana',
+    lastName: 'Solis',
+    dateOfBirth: ISODate('1988-04-12T00:00:00.000Z'),
+    sex: 'female',
+    active: true,
+    createdAt: ISODate('2026-07-01T14:00:00.000Z'),
+    sessions: [
+      {
+        sessionId: 'SEED-S002',
+        patientId: 'SEED-P001',
+        deviceId: 'OXI-CR-004',
+        startedAt: ISODate('2026-07-21T09:00:00.000Z'),
+        endedAt: null,
+        status: 'active',
+        createdAt: ISODate('2026-07-21T09:00:00.000Z'),
+        logs: [
+          {
+            logId: 'SEED-L004',
+            sessionId: 'SEED-S002',
+            patientId: 'SEED-P001',
+            sensorType: 'oxygen_saturation',
+            value: 95,
+            unit: '%',
+            recordedAt: ISODate('2026-07-21T09:02:00.000Z')
+          },
+          {
+            logId: 'SEED-L003',
+            sessionId: 'SEED-S002',
+            patientId: 'SEED-P001',
+            sensorType: 'oxygen_saturation',
+            value: 97,
+            unit: '%',
+            recordedAt: ISODate('2026-07-21T09:01:00.000Z')
+          }
+        ]
+      },
+      {
+        sessionId: 'SEED-S001',
+        patientId: 'SEED-P001',
+        deviceId: 'ECG-CR-001',
+        startedAt: ISODate('2026-07-20T08:00:00.000Z'),
+        endedAt: ISODate('2026-07-20T08:30:00.000Z'),
+        status: 'completed',
+        createdAt: ISODate('2026-07-20T08:00:00.000Z'),
+        logs: [
+          {
+            logId: 'SEED-L002',
+            sessionId: 'SEED-S001',
+            patientId: 'SEED-P001',
+            sensorType: 'heart_rate',
+            value: 78,
+            unit: 'bpm',
+            recordedAt: ISODate('2026-07-20T08:02:00.000Z')
+          },
+          {
+            logId: 'SEED-L001',
+            sessionId: 'SEED-S001',
+            patientId: 'SEED-P001',
+            sensorType: 'heart_rate',
+            value: 72,
+            unit: 'bpm',
+            recordedAt: ISODate('2026-07-20T08:01:00.000Z')
+          }
+        ]
+      }
+    ]
+  }
+]
+==> 05_tests.js
+ globalhealth-final-36d75b2-mongodb-1 copy database/mongodb/05_tests.js to globalhealth-final-36d75b2-mongodb-1:/tmp/globalhealth-mongodb-test.js Copying
+ globalhealth-final-36d75b2-mongodb-1 copy database/mongodb/05_tests.js to globalhealth-final-36d75b2-mongodb-1:/tmp/globalhealth-mongodb-test.js Copied
+Validators reject invalid documents:
+OK: validators reject invalid documents
+Unique indexes reject duplicate keys:
+OK: unique indexes reject duplicate keys
+Updates persist changes:
+OK: update persisted the change
+Deletions remove documents:
+OK: delete removed the document
+Comparison filters with limit and sort:
+OK: comparison filter, limit and sort verified
+Aggregation (group, sum, min, max, avg):
+OK: aggregation verified
+All MongoDB tests passed.
+All MongoDB scripts passed.
+result=PASS
+exit_code=0

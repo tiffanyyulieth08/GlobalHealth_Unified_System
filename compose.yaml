@@ -52,7 +52,10 @@ services:
     restart: unless-stopped
 
   postgres-replica:
-    image: ${COMPOSE_PROJECT_NAME:-globalhealth}-postgres:local
+    build:
+      context: .
+      dockerfile: docker/postgres/Dockerfile
+    image: ${COMPOSE_PROJECT_NAME:-globalhealth}-postgres-replica:local
     depends_on:
       postgres-primary:
         condition: service_healthy
@@ -204,7 +207,7 @@ services:
     build:
       context: .
       dockerfile: docker/postgres/fragmentation/coordinator/Dockerfile
-    image: ${COMPOSE_PROJECT_NAME:-globalhealth}-fragmentation-coordinator:local
+    image: ${COMPOSE_PROJECT_NAME:-globalhealth}-fragmentation-coordinator-horizontal:local
     depends_on:
       fragment-north:
         condition: service_healthy

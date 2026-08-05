@@ -1,0 +1,57 @@
+timestamp=2026-08-05T12:00:05-06:00
+commit=36d75b21a2e63f32a53797bcee63d4c95fb84750
+branch=feature/atlas-security-final-release
+command=sh scripts/test-xml-xsd.sh
+ Container globalhealth-final-36d75b2-postgres-primary-1  Running
+ Container globalhealth-final-36d75b2-postgres-primary-1  Waiting
+ Container globalhealth-final-36d75b2-postgres-primary-1  Healthy
+==> Creating test database globalhealth_xml_xsd_test
+CREATE DATABASE
+==> 01_schema_registry.sql
+CREATE EXTENSION
+CREATE TABLE
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+==> 02_clinical_records.sql
+CREATE FUNCTION
+CREATE TABLE
+CREATE FUNCTION
+CREATE TRIGGER
+==> 03_xml_operations.sql
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE VIEW
+CREATE VIEW
+CREATE VIEW
+==> 04_tests.sql
+ register_xml_schema 
+---------------------
+ 
+(1 row)
+
+DO
+ register_xml_schema 
+---------------------
+ 
+(1 row)
+
+ update_xml_schema 
+-------------------
+ t
+(1 row)
+
+DO
+INSERT 0 1
+DO
+DO
+DO
+          result           
+---------------------------
+ All XML/XSD tests passed.
+(1 row)
+
+All XML/XSD tests passed.
+result=PASS
+exit_code=0

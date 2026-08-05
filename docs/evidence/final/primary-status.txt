@@ -1,0 +1,15 @@
+timestamp=2026-08-05T14:34:33-06:00
+commit=36d75b21a2e63f32a53797bcee63d4c95fb84750
+branch=feature/atlas-security-final-release
+result=PASS
+command=primary role and pg_stat_replication
+ in_recovery 
+-------------
+ f
+(1 row)
+
+ application_name |   state   | sync_state 
+------------------+-----------+------------
+ postgres-replica | streaming | async
+(1 row)
+

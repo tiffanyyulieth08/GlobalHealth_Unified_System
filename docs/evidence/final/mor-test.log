@@ -1,0 +1,297 @@
+timestamp=2026-08-05T11:59:56-06:00
+commit=36d75b21a2e63f32a53797bcee63d4c95fb84750
+branch=feature/atlas-security-final-release
+command=sh scripts/test-mor.sh
+ Container globalhealth-final-36d75b2-postgres-primary-1  Running
+ Container globalhealth-final-36d75b2-postgres-primary-1  Waiting
+ Container globalhealth-final-36d75b2-postgres-primary-1  Healthy
+==> Creating test database globalhealth_mor_test
+NOTICE:  database "globalhealth_mor_test" does not exist, skipping
+DROP DATABASE
+CREATE DATABASE
+==> 01_types.sql
+CREATE TYPE
+CREATE TYPE
+CREATE TYPE
+CREATE TYPE
+==> 02_tables.sql
+CREATE SEQUENCE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+==> 03_functions.sql
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+==> 04_seed.sql
+INSERT 0 1
+INSERT 0 1
+ setval 
+--------
+      2
+(1 row)
+
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+ register_equipment 
+--------------------
+                  2
+(1 row)
+
+ setval 
+--------
+    102
+(1 row)
+
+==> 05_crud.sql
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+ id  | first_name | last_name |                       address                        |          phone          
+-----+------------+-----------+------------------------------------------------------+-------------------------
+   1 | Maria      | Fernandez | Calle 4, Heredia, Heredia 40101, Costa Rica          | +506 8888-1234 (mobile)
+   2 | Pedro      | Mora      | Av. 5, Alajuela, Alajuela 20101, Costa Rica          | +506 8888-9999 (mobile)
+   3 | Carlos     | Vega      | Av. 7, Alajuela, Alajuela 20101, Costa Rica          | +506 8899-1122 (mobile)
+ 101 | Ana        | Solano    | Av. Central 88, San Jose, San Jose 10101, Costa Rica | +506 2222-3344 (work)
+ 102 | Luis       | Vargas    | Calle 12, Heredia, Heredia 40101, Costa Rica         | +506 2233-4455 (work)
+ 103 | Lucia      | Rojas     |                                                      | 
+(6 rows)
+
+ id  | first_name | last_name |  specialty  |   subspecialty   
+-----+------------+-----------+-------------+------------------
+ 101 | Ana        | Solano    | Cardiologia | Cardiologia
+ 101 | Ana        | Solano    | Cardiologia | Medicina Interna
+ 102 | Luis       | Vargas    | Neurologia  | Neurologia
+ 103 | Lucia      | Rojas     | Pediatria   | Pediatria
+(4 rows)
+
+ id |         name          | equipment_count 
+----+-----------------------+-----------------
+  1 | GlobalHealth San Jose |               2
+  2 | GlobalHealth Heredia  |               2
+  3 | GlobalHealth Cartago  |               1
+(3 rows)
+
+ id |         name          |     brand     |     model     |   status    
+----+-----------------------+---------------+---------------+-------------
+  1 | GlobalHealth San Jose | Siemens       | MAGNETOM Vida | operational
+  1 | GlobalHealth San Jose | GE HealthCare | Revolution    | maintenance
+  2 | GlobalHealth Heredia  | Philips       | Azurion 7     | operational
+  2 | GlobalHealth Heredia  | Mindray       | DC-80         | operational
+  3 | GlobalHealth Cartago  | Carestream    | DRX-Evolution | operational
+(5 rows)
+
+UPDATE 1
+UPDATE 1
+ cartago_equipment_count 
+-------------------------
+                       2
+(1 row)
+
+DELETE 1
+DELETE 1
+DELETE 1
+==> 06_tests.sql
+CREATE FUNCTION
+CREATE FUNCTION
+ mor_test_assert 
+-----------------
+ 
+(1 row)
+
+NOTICE:  PASS: address_t type exists
+ mor_test_assert 
+-----------------
+ 
+(1 row)
+
+NOTICE:  PASS: phone_t type exists
+NOTICE:  PASS: equipment_t type exists
+ mor_test_assert 
+-----------------
+ 
+(1 row)
+
+NOTICE:  PASS: clinic_t type exists
+ mor_test_assert 
+-----------------
+ 
+(1 row)
+
+ mor_test_assert 
+-----------------
+ 
+(1 row)
+
+NOTICE:  PASS: clinic table (CREATE TABLE ... OF) exists
+NOTICE:  PASS: clinic.address is address_t
+ mor_test_assert 
+-----------------
+ 
+(1 row)
+
+NOTICE:  PASS: clinic.equipments is equipment_t[] (composition)
+ mor_test_assert 
+-----------------
+ 
+(1 row)
+
+ mor_test_assert 
+-----------------
+ 
+(1 row)
+
+NOTICE:  PASS: doctor inherits employee
+NOTICE:  PASS: doctor inherits employee columns
+ mor_test_assert 
+-----------------
+ 
+(1 row)
+
+ mor_test_assert 
+NOTICE:  PASS: seed employees count (ONLY employee)
+-----------------
+ 
+(1 row)
+
+ mor_test_assert 
+-----------------
+ 
+(1 row)
+
+NOTICE:  PASS: seed doctors count
+NOTICE:  PASS: seed clinics count
+NOTICE:  PASS: doctor.specialties is character varying[]
+NOTICE:  PASS: doctor.phone_numbers is phone_t[]
+NOTICE:  PASS: format_address receives address_t
+ mor_test_assert 
+-----------------
+ 
+(1 row)
+
+ mor_test_assert 
+-----------------
+ 
+(1 row)
+
+ mor_test_assert 
+-----------------
+ 
+(1 row)
+
+ mor_test_assert 
+-----------------
+ 
+(1 row)
+
+NOTICE:  PASS: format_phone receives phone_t
+ mor_test_assert 
+-----------------
+ 
+(1 row)
+
+ mor_test_assert 
+-----------------
+ 
+(1 row)
+NOTICE:  PASS: yearly_salary receives employee row type
+
+ mor_test_assert 
+-----------------
+ 
+(1 row)
+
+NOTICE:  PASS: clinic_equipment_count receives clinic_t
+NOTICE:  PASS: register_equipment receives equipment_t and appends to composition
+NOTICE:  PASS: clinic 2 has 3 equipments after register_equipment
+ mor_test_assert 
+-----------------
+ 
+(1 row)
+
+NOTICE:  PASS: deleting clinic removes its equipment composition
+NOTICE:  PASS: duplicate employee email rejected
+NOTICE:  PASS: negative employee salary rejected
+NOTICE:  PASS: null doctor specialty rejected
+NOTICE:  PASS: negative doctor salary rejected
+NOTICE:  PASS: register_equipment on missing clinic rejected
+NOTICE:  PASS: text into phone_t column rejected
+ mor_test_assert 
+-----------------
+ 
+NOTICE:  PASS: record with wrong field count into phone_t rejected
+(1 row)
+NOTICE:  PASS: duplicate doctor license rejected
+
+INSERT 0 1
+DELETE 1
+ mor_test_assert 
+-----------------
+ 
+(1 row)
+
+ mor_expects_error 
+-------------------
+ 
+(1 row)
+
+ mor_expects_error 
+-------------------
+ 
+(1 row)
+
+ mor_expects_error 
+-------------------
+ 
+(1 row)
+NOTICE:  PASS: duplicate clinic name rejected
+
+ mor_expects_error 
+-------------------
+ 
+(1 row)
+
+ mor_expects_error 
+-------------------
+ 
+(1 row)
+
+ mor_expects_error 
+-------------------
+ 
+(1 row)
+
+ mor_expects_error 
+-------------------
+ 
+(1 row)
+
+ mor_expects_error 
+-------------------
+ 
+(1 row)
+
+ mor_expects_error 
+-------------------
+ 
+(1 row)
+
+NOTICE:  PASS: All MOR tests passed
+ mor_test_assert 
+-----------------
+ 
+(1 row)
+
+==> Cleaning up test database
+DROP DATABASE
+All MOR tests passed.
+result=PASS
+exit_code=0

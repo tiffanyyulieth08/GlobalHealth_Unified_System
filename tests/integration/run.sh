@@ -99,7 +99,7 @@ cat "$EVIDENCE_DIR/postgresql.txt"
 
 printf '==> Preparando colecciones de telemetria en MongoDB\n'
 compose cp database/mongodb/01_collections.js mongodb:/tmp/integration-collections.js >/dev/null
-compose exec -T -e "MONGODB_DB=$MONGO_DB" mongodb \
+MSYS_NO_PATHCONV=1 compose exec -T -e "MONGODB_DB=$MONGO_DB" mongodb \
     mongosh "mongodb://localhost:27017/$MONGO_DB" \
     --quiet --file /tmp/integration-collections.js > "$EVIDENCE_DIR/mongodb-setup.txt"
 

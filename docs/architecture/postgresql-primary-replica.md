@@ -72,3 +72,62 @@ ambos pools están disponibles y cada servidor cumple el rol esperado.
 - Supervisa `pg_stat_replication` y `pg_stat_wal_receiver`.
 - Conserva copias de seguridad independientes de la réplica.
 - Rota las credenciales y mantenlas fuera del repositorio.
+
+## Separación Primary/Replica y comportamiento ante fallos
+
+La separación es explícita y no existe descubrimiento dinámico:
+
+- `write_pool` solo usa `POSTGRES_WRITE_URL`;
+- `read_pool` y `/dashboard` solo usan `POSTGRES_READ_URL`;
+- la Replica permanece en hot standby y rechaza escrituras;
+- detener Primary no promueve la Replica;
+- durante la caída, `/dashboard` puede seguir respondiendo, pero las escrituras
+  controladas responden HTTP 503.
+
+`scripts/chaos-replication.sh` detiene Primary sin eliminar datos, comprueba
+lectura y rechazo de escritura, lo reinicia, espera el streaming, realiza una
+escritura nueva y la confirma en Replica. Un `trap` intenta recuperar Primary
+si la ejecución se interrumpe.
+
+## Reset controlado de Replica
+
+Este procedimiento destruye únicamente el volumen de Replica. Primary debe
+estar saludable y conservar la copia autoritativa:
+
+```sh
+docker compose up -d --wait postgres-primary
+docker compose stop postgres-replica
+docker compose rm -f postgres-replica
+docker volume ls --format '{{.Name}}' | grep 'postgres-replica-data$'
+docker volume rm NOMBRE_EXACTO_CONFIRMADO
+docker compose up -d --wait --wait-timeout 240 postgres-replica
+sh scripts/test-replication.sh
+```
+
+Antes de `docker volume rm`, verificar visualmente que el nombre termina en
+`postgres-replica-data` y pertenece al proyecto Compose actual. No eliminar
+`postgres-primary-data`. La nueva Replica ejecuta `pg_basebackup` desde
+Primary. Si hay datos únicos en la Replica —situación no prevista por el
+diseño— detenerse y respaldarlos antes del reset.
+
+Para reiniciar todo el ambiente académico desde cero, después de confirmar que
+los datos pueden perderse:
+
+```sh
+docker compose down -v --remove-orphans
+docker compose up -d --build --wait --wait-timeout 240
+```
+
+## Recuperación y errores frecuentes
+
+| Síntoma | Comprobación | Recuperación |
+| --- | --- | --- |
+| Replica no entra en `streaming` | `docker compose logs postgres-replica` y `sh scripts/replication-status.sh` | Confirmar Primary saludable y credenciales de replicación; si el volumen quedó incompatible, aplicar el reset controlado de Replica. |
+| Primary inicia pero Replica conserva credenciales antiguas | Comparar variables activas sin imprimir sus valores | Recrear solo el volumen de Replica para repetir `pg_basebackup`. |
+| `/health/databases` responde 503 | Revisar el rol de ambos nodos con `pg_is_in_recovery()` | Recuperar el nodo incorrecto; no intercambiar las URL de lectura y escritura. |
+| Escritura enviada a Replica | Revisar `POSTGRES_WRITE_URL` | Apuntar exclusivamente a `postgres-primary`; no desactivar hot standby. |
+| WAL crece sin límite | Revisar estado del receptor y uso de disco | Recuperar o reconstruir Replica; la retención configurada no sustituye monitoreo. |
+
+La Replica no es un backup: replica también borrados y errores lógicos. La
+recuperación ante pérdida de Primary requiere una estrategia de backup/restore
+o promoción manual fuera del alcance implementado.

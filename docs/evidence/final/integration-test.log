@@ -1,0 +1,1318 @@
+timestamp=2026-08-05T14:28:14-06:00
+commit=36d75b21a2e63f32a53797bcee63d4c95fb84750
+branch=feature/atlas-security-final-release
+command=sh scripts/test-all.sh
+==> Puerta de calidad: validando compose config
+OK: compose config valido
+
+==> [replication] proyecto aislado: globalhealth-test-replication
+#1 [internal] load local bake definitions
+#1 reading from stdin 1.45kB done
+#1 DONE 0.0s
+
+#2 [postgres-replica internal] load build definition from Dockerfile
+#2 transferring dockerfile: 636B 0.0s done
+#2 DONE 0.0s
+
+#3 [postgres-primary internal] load metadata for docker.io/library/postgres:16-bookworm
+#3 DONE 3.3s
+
+#4 [postgres-replica internal] load .dockerignore
+#4 transferring context: 2B done
+#4 DONE 0.0s
+
+#5 [postgres-replica 1/7] FROM docker.io/library/postgres:16-bookworm@sha256:64154d0babcb1741988719e703419af0382b19953706149f9872fbd0f438efa8
+#5 resolve docker.io/library/postgres:16-bookworm@sha256:64154d0babcb1741988719e703419af0382b19953706149f9872fbd0f438efa8 0.0s done
+#5 DONE 0.0s
+
+#6 [postgres-primary internal] load build context
+#6 transferring context: 5.61kB done
+#6 DONE 0.0s
+
+#6 [postgres-replica internal] load build context
+#6 DONE 0.0s
+
+#7 [postgres-replica 4/7] COPY docker/postgres/primary/postgresql.conf /etc/postgresql/primary-postgresql.conf
+#7 CACHED
+
+#8 [postgres-replica 5/7] COPY docker/postgres/primary/pg_hba.conf /etc/postgresql/primary-pg_hba.conf
+#8 CACHED
+
+#9 [postgres-replica 6/7] COPY docker/postgres/replica/entrypoint.sh /usr/local/bin/replica-entrypoint.sh
+#9 CACHED
+
+#10 [postgres-replica 2/7] RUN apt-get update     && apt-get install --no-install-recommends -y         postgresql-plpython3-16         python3-lxml     && rm -rf /var/lib/apt/lists/*
+#10 CACHED
+
+#11 [postgres-replica 3/7] COPY docker/postgres/primary/init/ /docker-entrypoint-initdb.d/
+#11 CACHED
+
+#12 [postgres-replica 7/7] RUN chmod +x /docker-entrypoint-initdb.d/*.sh /usr/local/bin/replica-entrypoint.sh
+#12 CACHED
+
+#13 [postgres-primary] exporting to image
+#13 exporting layers done
+#13 exporting manifest sha256:54fdc5eea96ac176660e3c944997df34b4f612298faa7616e9a5cf0cea7af809 0.0s done
+#13 exporting config sha256:29e484dc6ab07a6ab3026903dcf18d342d38ab2e8b009e8f4e6db0c647f18d71 0.0s done
+#13 exporting attestation manifest sha256:3d990077c00aba3e0705bd44cd09034a18fa5c5a8aed2aaeed760beaefd2dfd6
+#13 exporting attestation manifest sha256:3d990077c00aba3e0705bd44cd09034a18fa5c5a8aed2aaeed760beaefd2dfd6 0.1s done
+#13 exporting manifest list sha256:a207afe299483231e8d9df52ab4aeee283a9d76116876c2397363216eb7e44c0
+#13 exporting manifest list sha256:a207afe299483231e8d9df52ab4aeee283a9d76116876c2397363216eb7e44c0 0.1s done
+#13 naming to docker.io/library/globalhealth-test-replication-postgres:local 0.0s done
+#13 unpacking to docker.io/library/globalhealth-test-replication-postgres:local 0.0s done
+#13 DONE 0.4s
+
+#14 [postgres-replica] exporting to image
+#14 exporting layers done
+#14 exporting manifest sha256:1d0e797269607b7f39b7e87ee2328ae3c948f5e1c2007faf8d6aa1b1a25ff3d1 0.0s done
+#14 exporting config sha256:a99cb6de893bd0f602e982270052b254f468d8ee6bd807f291fde3d40cd333f6 0.0s done
+#14 exporting attestation manifest sha256:a3f8e6f3451e3dd92290a50365750f74f5020ad4ead5ec5377f614128ba49d00 0.1s done
+#14 exporting manifest list sha256:8d9cdf23b7a9ce5f8699c65017682bc863b4fc733038d62ae358ecbaa8626442 0.1s done
+#14 naming to docker.io/library/globalhealth-test-replication-postgres-replica:local 0.0s done
+#14 unpacking to docker.io/library/globalhealth-test-replication-postgres-replica:local 0.0s done
+#14 DONE 0.4s
+
+#15 [postgres-primary] resolving provenance for metadata file
+#15 DONE 0.0s
+
+#16 [postgres-replica] resolving provenance for metadata file
+#16 DONE 0.0s
+ globalhealth-test-replication-postgres:local  Built
+ globalhealth-test-replication-postgres-replica:local  Built
+ Network globalhealth-test-replication_globalhealth-network  Creating
+ Network globalhealth-test-replication_globalhealth-network  Created
+ Volume globalhealth-test-replication_postgres-replica-data  Creating
+ Volume globalhealth-test-replication_postgres-replica-data  Created
+ Volume globalhealth-test-replication_postgres-primary-data  Creating
+ Volume globalhealth-test-replication_postgres-primary-data  Created
+ Container globalhealth-test-replication-postgres-primary-1  Creating
+ Container globalhealth-test-replication-postgres-primary-1  Created
+ Container globalhealth-test-replication-postgres-replica-1  Creating
+ Container globalhealth-test-replication-postgres-replica-1  Created
+ Container globalhealth-test-replication-postgres-primary-1  Starting
+ Container globalhealth-test-replication-postgres-primary-1  Started
+ Container globalhealth-test-replication-postgres-primary-1  Waiting
+ Container globalhealth-test-replication-postgres-primary-1  Healthy
+ Container globalhealth-test-replication-postgres-replica-1  Starting
+ Container globalhealth-test-replication-postgres-replica-1  Started
+ Container globalhealth-test-replication-postgres-primary-1  Waiting
+ Container globalhealth-test-replication-postgres-replica-1  Waiting
+ Container globalhealth-test-replication-postgres-primary-1  Healthy
+ Container globalhealth-test-replication-postgres-replica-1  Healthy
+Primary pg_is_in_recovery(): false
+Replica pg_is_in_recovery(): true
+Replicated record: replication-1785961695-1043
+All replication tests passed.
+==> [replication] PASS
+
+==> [mor] proyecto aislado: globalhealth-test-mor
+ Network globalhealth-test-mor_globalhealth-network  Creating
+ Network globalhealth-test-mor_globalhealth-network  Created
+ Volume globalhealth-test-mor_postgres-primary-data  Creating
+ Volume globalhealth-test-mor_postgres-primary-data  Created
+ Container globalhealth-test-mor-postgres-primary-1  Creating
+ Container globalhealth-test-mor-postgres-primary-1  Created
+ Container globalhealth-test-mor-postgres-primary-1  Starting
+ Container globalhealth-test-mor-postgres-primary-1  Started
+ Container globalhealth-test-mor-postgres-primary-1  Waiting
+ Container globalhealth-test-mor-postgres-primary-1  Healthy
+==> Creating test database globalhealth_mor_test
+NOTICE:  database "globalhealth_mor_test" does not exist, skipping
+DROP DATABASE
+CREATE DATABASE
+==> 01_types.sql
+CREATE TYPE
+CREATE TYPE
+CREATE TYPE
+CREATE TYPE
+==> 02_tables.sql
+CREATE SEQUENCE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+==> 03_functions.sql
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+==> 04_seed.sql
+INSERT 0 1
+INSERT 0 1
+ setval 
+--------
+      2
+(1 row)
+
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+ register_equipment 
+--------------------
+                  2
+(1 row)
+
+ setval 
+--------
+    102
+(1 row)
+
+==> 05_crud.sql
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+ id  | first_name | last_name |                       address                        |          phone          
+-----+------------+-----------+------------------------------------------------------+-------------------------
+   1 | Maria      | Fernandez | Calle 4, Heredia, Heredia 40101, Costa Rica          | +506 8888-1234 (mobile)
+   2 | Pedro      | Mora      | Av. 5, Alajuela, Alajuela 20101, Costa Rica          | +506 8888-9999 (mobile)
+   3 | Carlos     | Vega      | Av. 7, Alajuela, Alajuela 20101, Costa Rica          | +506 8899-1122 (mobile)
+ 101 | Ana        | Solano    | Av. Central 88, San Jose, San Jose 10101, Costa Rica | +506 2222-3344 (work)
+ 102 | Luis       | Vargas    | Calle 12, Heredia, Heredia 40101, Costa Rica         | +506 2233-4455 (work)
+ 103 | Lucia      | Rojas     |                                                      | 
+(6 rows)
+
+ id  | first_name | last_name |  specialty  |   subspecialty   
+-----+------------+-----------+-------------+------------------
+ 101 | Ana        | Solano    | Cardiologia | Cardiologia
+ 101 | Ana        | Solano    | Cardiologia | Medicina Interna
+ 102 | Luis       | Vargas    | Neurologia  | Neurologia
+ 103 | Lucia      | Rojas     | Pediatria   | Pediatria
+(4 rows)
+
+ id |         name          | equipment_count 
+----+-----------------------+-----------------
+  1 | GlobalHealth San Jose |               2
+  2 | GlobalHealth Heredia  |               2
+  3 | GlobalHealth Cartago  |               1
+(3 rows)
+
+ id |         name          |     brand     |     model     |   status    
+----+-----------------------+---------------+---------------+-------------
+  1 | GlobalHealth San Jose | Siemens       | MAGNETOM Vida | operational
+  1 | GlobalHealth San Jose | GE HealthCare | Revolution    | maintenance
+  2 | GlobalHealth Heredia  | Philips       | Azurion 7     | operational
+  2 | GlobalHealth Heredia  | Mindray       | DC-80         | operational
+  3 | GlobalHealth Cartago  | Carestream    | DRX-Evolution | operational
+(5 rows)
+
+UPDATE 1
+UPDATE 1
+ cartago_equipment_count 
+-------------------------
+                       2
+(1 row)
+
+DELETE 1
+DELETE 1
+DELETE 1
+==> 06_tests.sql
+CREATE FUNCTION
+CREATE FUNCTION
+ mor_test_assert 
+-----------------
+ 
+(1 row)
+
+ mor_test_assert 
+-----------------
+ 
+(1 row)
+
+ mor_test_assert 
+-----------------
+ 
+(1 row)
+
+NOTICE:  PASS: address_t type exists
+ mor_test_assert 
+-----------------
+ 
+(1 row)
+
+ mor_test_assert 
+-----------------
+ 
+NOTICE:  PASS: phone_t type exists
+NOTICE:  PASS: equipment_t type exists
+NOTICE:  PASS: clinic_t type exists
+NOTICE:  PASS: clinic table (CREATE TABLE ... OF) exists
+(1 row)
+
+NOTICE:  PASS: clinic.address is address_t
+ mor_test_assert 
+-----------------
+ 
+(1 row)
+
+ mor_test_assert 
+-----------------
+ 
+(1 row)
+
+ mor_test_assert 
+-----------------
+ 
+(1 row)
+
+ mor_test_assert 
+-----------------
+ 
+(1 row)
+
+ mor_test_assert 
+-----------------
+ 
+(1 row)
+
+ mor_test_assert 
+NOTICE:  PASS: clinic.equipments is equipment_t[] (composition)
+-----------------
+ 
+(1 row)
+
+NOTICE:  PASS: doctor inherits employee
+NOTICE:  PASS: doctor inherits employee columns
+NOTICE:  PASS: seed employees count (ONLY employee)
+NOTICE:  PASS: seed doctors count
+NOTICE:  PASS: seed clinics count
+ mor_test_assert 
+-----------------
+ 
+(1 row)
+
+ mor_test_assert 
+-----------------
+ 
+(1 row)
+
+ mor_test_assert 
+-----------------
+ 
+(1 row)
+
+NOTICE:  PASS: doctor.specialties is character varying[]
+NOTICE:  PASS: doctor.phone_numbers is phone_t[]
+NOTICE:  PASS: format_address receives address_t
+ mor_test_assert 
+-----------------
+ 
+(1 row)
+
+ mor_test_assert 
+-----------------
+ 
+(1 row)
+
+NOTICE:  PASS: format_phone receives phone_t
+ mor_test_assert 
+-----------------
+ 
+(1 row)
+
+NOTICE:  PASS: yearly_salary receives employee row type
+ mor_test_assert 
+-----------------
+ 
+(1 row)
+
+NOTICE:  PASS: clinic_equipment_count receives clinic_t
+NOTICE:  PASS: register_equipment receives equipment_t and appends to composition
+ mor_test_assert 
+-----------------
+ 
+(1 row)
+
+ mor_test_assert 
+-----------------
+ 
+(1 row)
+
+NOTICE:  PASS: clinic 2 has 3 equipments after register_equipment
+INSERT 0 1
+DELETE 1
+ mor_test_assert 
+-----------------
+ 
+(1 row)
+
+NOTICE:  PASS: deleting clinic removes its equipment composition
+NOTICE:  PASS: duplicate employee email rejected
+ mor_expects_error 
+-------------------
+ 
+(1 row)
+
+ mor_expects_error 
+-------------------
+ 
+(1 row)
+
+NOTICE:  PASS: negative employee salary rejected
+NOTICE:  PASS: null doctor specialty rejected
+ mor_expects_error 
+-------------------
+ 
+(1 row)
+
+ mor_expects_error 
+-------------------
+ 
+(1 row)
+
+NOTICE:  PASS: negative doctor salary rejected
+NOTICE:  PASS: register_equipment on missing clinic rejected
+ mor_expects_error 
+-------------------
+ 
+(1 row)
+
+NOTICE:  PASS: text into phone_t column rejected
+ mor_expects_error 
+-------------------
+ 
+(1 row)
+
+NOTICE:  PASS: record with wrong field count into phone_t rejected
+ mor_expects_error 
+-------------------
+ 
+(1 row)
+
+NOTICE:  PASS: duplicate doctor license rejected
+ mor_expects_error 
+-------------------
+ 
+(1 row)
+
+NOTICE:  PASS: duplicate clinic name rejected
+ mor_expects_error 
+-------------------
+ 
+(1 row)
+
+NOTICE:  PASS: All MOR tests passed
+ mor_test_assert 
+-----------------
+ 
+(1 row)
+
+==> Cleaning up test database
+DROP DATABASE
+All MOR tests passed.
+==> [mor] PASS
+
+==> [xml-xsd] proyecto aislado: globalhealth-test-xml-xsd
+ Network globalhealth-test-xml-xsd_globalhealth-network  Creating
+ Network globalhealth-test-xml-xsd_globalhealth-network  Created
+ Volume globalhealth-test-xml-xsd_postgres-primary-data  Creating
+ Volume globalhealth-test-xml-xsd_postgres-primary-data  Created
+ Container globalhealth-test-xml-xsd-postgres-primary-1  Creating
+ Container globalhealth-test-xml-xsd-postgres-primary-1  Created
+ Container globalhealth-test-xml-xsd-postgres-primary-1  Starting
+ Container globalhealth-test-xml-xsd-postgres-primary-1  Started
+ Container globalhealth-test-xml-xsd-postgres-primary-1  Waiting
+ Container globalhealth-test-xml-xsd-postgres-primary-1  Healthy
+==> Creating test database globalhealth_xml_xsd_test
+CREATE DATABASE
+==> 01_schema_registry.sql
+CREATE EXTENSION
+CREATE TABLE
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+==> 02_clinical_records.sql
+CREATE FUNCTION
+CREATE TABLE
+CREATE FUNCTION
+CREATE TRIGGER
+==> 03_xml_operations.sql
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE VIEW
+CREATE VIEW
+CREATE VIEW
+==> 04_tests.sql
+ register_xml_schema 
+---------------------
+ 
+(1 row)
+
+DO
+ register_xml_schema 
+---------------------
+ 
+(1 row)
+
+ update_xml_schema 
+-------------------
+ t
+(1 row)
+
+DO
+INSERT 0 1
+DO
+DO
+DO
+          result           
+---------------------------
+ All XML/XSD tests passed.
+(1 row)
+
+All XML/XSD tests passed.
+==> [xml-xsd] PASS
+
+==> [mongodb] proyecto aislado: globalhealth-test-mongodb
+ Network globalhealth-test-mongodb_globalhealth-network  Creating
+ Network globalhealth-test-mongodb_globalhealth-network  Created
+ Volume globalhealth-test-mongodb_mongodb-data  Creating
+ Volume globalhealth-test-mongodb_mongodb-data  Created
+ Container globalhealth-test-mongodb-mongodb-1  Creating
+ Container globalhealth-test-mongodb-mongodb-1  Created
+ Container globalhealth-test-mongodb-mongodb-1  Starting
+ Container globalhealth-test-mongodb-mongodb-1  Started
+ Container globalhealth-test-mongodb-mongodb-1  Waiting
+ Container globalhealth-test-mongodb-mongodb-1  Healthy
+==> 01_collections.js
+ globalhealth-test-mongodb-mongodb-1 copy database/mongodb/01_collections.js to globalhealth-test-mongodb-mongodb-1:/tmp/globalhealth-mongodb-test.js Copying
+ globalhealth-test-mongodb-mongodb-1 copy database/mongodb/01_collections.js to globalhealth-test-mongodb-mongodb-1:/tmp/globalhealth-mongodb-test.js Copied
+Collections and indexes ready in globalhealth_test.
+==> 02_seed.js
+ globalhealth-test-mongodb-mongodb-1 copy database/mongodb/02_seed.js to globalhealth-test-mongodb-mongodb-1:/tmp/globalhealth-mongodb-test.js Copying
+ globalhealth-test-mongodb-mongodb-1 copy database/mongodb/02_seed.js to globalhealth-test-mongodb-mongodb-1:/tmp/globalhealth-mongodb-test.js Copied
+Seed data inserted.
+==> 03_operations.js
+ globalhealth-test-mongodb-mongodb-1 copy database/mongodb/03_operations.js to globalhealth-test-mongodb-mongodb-1:/tmp/globalhealth-mongodb-test.js Copying
+ globalhealth-test-mongodb-mongodb-1 copy database/mongodb/03_operations.js to globalhealth-test-mongodb-mongodb-1:/tmp/globalhealth-mongodb-test.js Copied
+Filtered active patients:
+[
+  {
+    patientId: 'DEMO-P001',
+    firstName: 'Lucia',
+    lastName: 'Castro',
+    dateOfBirth: ISODate('1992-06-18T00:00:00.000Z'),
+    sex: 'female',
+    active: true,
+    createdAt: ISODate('2026-08-05T20:29:15.825Z'),
+    updatedAt: ISODate('2026-08-05T20:29:15.833Z')
+  },
+  {
+    patientId: 'SEED-P001',
+    firstName: 'Ana',
+    lastName: 'Solis',
+    dateOfBirth: ISODate('1988-04-12T00:00:00.000Z'),
+    sex: 'female',
+    active: true,
+    createdAt: ISODate('2026-07-01T14:00:00.000Z')
+  },
+  {
+    patientId: 'SEED-P002',
+    firstName: 'Marco',
+    lastName: 'Vargas',
+    dateOfBirth: ISODate('1975-09-23T00:00:00.000Z'),
+    sex: 'male',
+    active: true,
+    createdAt: ISODate('2026-07-02T14:00:00.000Z')
+  }
+]
+Latest high heart-rate readings:
+[
+  {
+    logId: 'DEMO-L003',
+    sessionId: 'DEMO-S001',
+    value: 76,
+    unit: 'bpm',
+    recordedAt: ISODate('2026-07-30T15:03:00.000Z')
+  },
+  {
+    logId: 'DEMO-L002',
+    sessionId: 'DEMO-S001',
+    value: 84,
+    unit: 'bpm',
+    recordedAt: ISODate('2026-07-30T15:02:00.000Z')
+  },
+  {
+    logId: 'DEMO-L001',
+    sessionId: 'DEMO-S001',
+    value: 80,
+    unit: 'bpm',
+    recordedAt: ISODate('2026-07-30T15:01:00.000Z')
+  }
+]
+CRUD operations completed.
+==> 04_aggregations.js
+ globalhealth-test-mongodb-mongodb-1 copy database/mongodb/04_aggregations.js to globalhealth-test-mongodb-mongodb-1:/tmp/globalhealth-mongodb-test.js Copying
+ globalhealth-test-mongodb-mongodb-1 copy database/mongodb/04_aggregations.js to globalhealth-test-mongodb-mongodb-1:/tmp/globalhealth-mongodb-test.js Copied
+Telemetry summary by patient and sensor:
+[
+  {
+    samples: 3,
+    minimum: 76,
+    maximum: 84,
+    lastReadingAt: ISODate('2026-07-30T15:03:00.000Z'),
+    patientId: 'DEMO-P001',
+    sensorType: 'heart_rate',
+    average: 80
+  },
+  {
+    samples: 2,
+    minimum: 72,
+    maximum: 78,
+    lastReadingAt: ISODate('2026-07-20T08:02:00.000Z'),
+    patientId: 'SEED-P001',
+    sensorType: 'heart_rate',
+    average: 75
+  },
+  {
+    samples: 2,
+    minimum: 95,
+    maximum: 97,
+    lastReadingAt: ISODate('2026-07-21T09:02:00.000Z'),
+    patientId: 'SEED-P001',
+    sensorType: 'oxygen_saturation',
+    average: 96
+  },
+  {
+    samples: 1,
+    minimum: 37.2,
+    maximum: 37.2,
+    lastReadingAt: ISODate('2026-07-22T10:01:00.000Z'),
+    patientId: 'SEED-P002',
+    sensorType: 'temperature',
+    average: 37.2
+  }
+]
+Patient -> sessions -> sensor logs:
+[
+  {
+    patientId: 'SEED-P001',
+    firstName: 'Ana',
+    lastName: 'Solis',
+    dateOfBirth: ISODate('1988-04-12T00:00:00.000Z'),
+    sex: 'female',
+    active: true,
+    createdAt: ISODate('2026-07-01T14:00:00.000Z'),
+    sessions: [
+      {
+        sessionId: 'SEED-S002',
+        patientId: 'SEED-P001',
+        deviceId: 'OXI-CR-004',
+        startedAt: ISODate('2026-07-21T09:00:00.000Z'),
+        endedAt: null,
+        status: 'active',
+        createdAt: ISODate('2026-07-21T09:00:00.000Z'),
+        logs: [
+          {
+            logId: 'SEED-L004',
+            sessionId: 'SEED-S002',
+            patientId: 'SEED-P001',
+            sensorType: 'oxygen_saturation',
+            value: 95,
+            unit: '%',
+            recordedAt: ISODate('2026-07-21T09:02:00.000Z')
+          },
+          {
+            logId: 'SEED-L003',
+            sessionId: 'SEED-S002',
+            patientId: 'SEED-P001',
+            sensorType: 'oxygen_saturation',
+            value: 97,
+            unit: '%',
+            recordedAt: ISODate('2026-07-21T09:01:00.000Z')
+          }
+        ]
+      },
+      {
+        sessionId: 'SEED-S001',
+        patientId: 'SEED-P001',
+        deviceId: 'ECG-CR-001',
+        startedAt: ISODate('2026-07-20T08:00:00.000Z'),
+        endedAt: ISODate('2026-07-20T08:30:00.000Z'),
+        status: 'completed',
+        createdAt: ISODate('2026-07-20T08:00:00.000Z'),
+        logs: [
+          {
+            logId: 'SEED-L002',
+            sessionId: 'SEED-S001',
+            patientId: 'SEED-P001',
+            sensorType: 'heart_rate',
+            value: 78,
+            unit: 'bpm',
+            recordedAt: ISODate('2026-07-20T08:02:00.000Z')
+          },
+          {
+            logId: 'SEED-L001',
+            sessionId: 'SEED-S001',
+            patientId: 'SEED-P001',
+            sensorType: 'heart_rate',
+            value: 72,
+            unit: 'bpm',
+            recordedAt: ISODate('2026-07-20T08:01:00.000Z')
+          }
+        ]
+      }
+    ]
+  }
+]
+==> 05_tests.js
+ globalhealth-test-mongodb-mongodb-1 copy database/mongodb/05_tests.js to globalhealth-test-mongodb-mongodb-1:/tmp/globalhealth-mongodb-test.js Copying
+ globalhealth-test-mongodb-mongodb-1 copy database/mongodb/05_tests.js to globalhealth-test-mongodb-mongodb-1:/tmp/globalhealth-mongodb-test.js Copied
+Validators reject invalid documents:
+OK: validators reject invalid documents
+Unique indexes reject duplicate keys:
+OK: unique indexes reject duplicate keys
+Updates persist changes:
+OK: update persisted the change
+Deletions remove documents:
+OK: delete removed the document
+Comparison filters with limit and sort:
+OK: comparison filter, limit and sort verified
+Aggregation (group, sum, min, max, avg):
+OK: aggregation verified
+All MongoDB tests passed.
+All MongoDB scripts passed.
+==> [mongodb] PASS
+
+==> [fragmentation-horizontal] proyecto aislado: globalhealth-test-fragmentation-horizontal
+#1 [internal] load local bake definitions
+#1 reading from stdin 904B done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile
+#2 transferring dockerfile: 212B 0.0s done
+#2 DONE 0.0s
+
+#3 [internal] load metadata for docker.io/library/postgres:16-bookworm
+#3 DONE 0.0s
+
+#4 [internal] load .dockerignore
+#4 transferring context:
+#4 transferring context: 2B done
+#4 DONE 0.0s
+
+#5 [1/2] FROM docker.io/library/postgres:16-bookworm@sha256:64154d0babcb1741988719e703419af0382b19953706149f9872fbd0f438efa8
+#5 resolve docker.io/library/postgres:16-bookworm@sha256:64154d0babcb1741988719e703419af0382b19953706149f9872fbd0f438efa8 0.1s done
+#5 DONE 0.1s
+
+#6 [2/2] RUN apt-get update     && apt-get install --no-install-recommends -y         postgresql-contrib-16     && rm -rf /var/lib/apt/lists/*
+#6 CACHED
+
+#7 exporting to image
+#7 exporting layers 0.0s done
+#7 exporting manifest sha256:44d553fcd7078f54286f62aa715eae159f2906c1c40a0855edb74b4a8a00e820 done
+#7 exporting config sha256:fdba3e1c7dc67f7cf8d1f5831438b903d1383f7b9bda198028e2d07be0a42f21 done
+#7 exporting attestation manifest sha256:2008c57807ac5686a41dcdba541cc63ac4f6960dc2f9b6577069e3a46dca353d 0.1s done
+#7 exporting manifest list sha256:87ccd03547936df2b0698713267273c625dad50fff1902ee74d0c7a42e329f01
+#7 exporting manifest list sha256:87ccd03547936df2b0698713267273c625dad50fff1902ee74d0c7a42e329f01 0.1s done
+#7 naming to docker.io/library/globalhealth-test-fragmentation-horizontal-fragmentation-coordinator-horizontal:local done
+#7 unpacking to docker.io/library/globalhealth-test-fragmentation-horizontal-fragmentation-coordinator-horizontal:local 0.1s done
+#7 DONE 0.3s
+
+#8 resolving provenance for metadata file
+#8 DONE 0.0s
+ globalhealth-test-fragmentation-horizontal-fragmentation-coordinator-horizontal:local  Built
+ Network globalhealth-test-fragmentation-horizontal_globalhealth-network  Creating
+ Network globalhealth-test-fragmentation-horizontal_globalhealth-network  Created
+ Volume globalhealth-test-fragmentation-horizontal_postgres-fragment-south-data  Creating
+ Volume globalhealth-test-fragmentation-horizontal_postgres-fragment-south-data  Created
+ Volume globalhealth-test-fragmentation-horizontal_postgres-fragment-north-data  Creating
+ Volume globalhealth-test-fragmentation-horizontal_postgres-fragment-north-data  Created
+ Volume globalhealth-test-fragmentation-horizontal_postgres-fragmentation-horizontal-coordinator-data  Creating
+ Volume globalhealth-test-fragmentation-horizontal_postgres-fragmentation-horizontal-coordinator-data  Created
+ Container globalhealth-test-fragmentation-horizontal-fragment-north-1  Creating
+ Container globalhealth-test-fragmentation-horizontal-fragment-south-1  Creating
+ Container globalhealth-test-fragmentation-horizontal-fragment-south-1  Created
+ Container globalhealth-test-fragmentation-horizontal-fragment-north-1  Created
+ Container globalhealth-test-fragmentation-horizontal-fragmentation-coordinator-horizontal-1  Creating
+ Container globalhealth-test-fragmentation-horizontal-fragmentation-coordinator-horizontal-1  Created
+ Container globalhealth-test-fragmentation-horizontal-fragment-north-1  Starting
+ Container globalhealth-test-fragmentation-horizontal-fragment-south-1  Starting
+ Container globalhealth-test-fragmentation-horizontal-fragment-south-1  Started
+ Container globalhealth-test-fragmentation-horizontal-fragment-north-1  Started
+ Container globalhealth-test-fragmentation-horizontal-fragment-south-1  Waiting
+ Container globalhealth-test-fragmentation-horizontal-fragment-north-1  Waiting
+ Container globalhealth-test-fragmentation-horizontal-fragment-south-1  Healthy
+ Container globalhealth-test-fragmentation-horizontal-fragment-north-1  Healthy
+ Container globalhealth-test-fragmentation-horizontal-fragmentation-coordinator-horizontal-1  Starting
+ Container globalhealth-test-fragmentation-horizontal-fragmentation-coordinator-horizontal-1  Started
+ Container globalhealth-test-fragmentation-horizontal-fragmentation-coordinator-horizontal-1  Waiting
+ Container globalhealth-test-fragmentation-horizontal-fragment-south-1  Waiting
+ Container globalhealth-test-fragmentation-horizontal-fragment-north-1  Waiting
+ Container globalhealth-test-fragmentation-horizontal-fragment-south-1  Healthy
+ Container globalhealth-test-fragmentation-horizontal-fragment-north-1  Healthy
+ Container globalhealth-test-fragmentation-horizontal-fragmentation-coordinator-horizontal-1  Healthy
+==> Limpiando y sembrando datos de prueba (llaves disjuntas)
+==> Datos semilla
+OK: fragment-north semilla 3 registros -> 3
+OK: fragment-south semilla 3 registros -> 3
+==> Restricciones CHECK por region
+OK: fragment-north solo region NORTH -> 3
+OK: fragment-south solo region SOUTH -> 3
+==> Conjuntos de llaves disjuntos en estado normal
+OK: sin patient_id compartidos entre NORTH y SOUTH (INTERSECT vacio) -> 
+==> Ruta normal de escritura: insert_patient via coordinador
+OK: enrutamiento NORTH inserta en fragment-north -> 1
+OK: enrutamiento NORTH no toca fragment-south -> 0
+OK: enrutamiento SOUTH inserta en fragment-south -> 1
+OK: enrutamiento SOUTH no toca fragment-north -> 0
+OK: insercion normal NORTH via coordinador -> 1
+OK: insercion normal SOUTH via coordinador -> 1
+==> Acceso administrativo directo a un fragmento
+OK: fragment-north rechaza insercion con region SOUTH
+OK: fragment-south rechaza insercion con region NORTH
+==> Duplicados entre nodos (negativas con ROLLBACK)
+OK: insert_patient rechaza patient_id 1 (existe en NORTH) en SOUTH
+OK: insert_patient rechaza patient_id 4 (existe en SOUTH) en NORTH
+OK: insert_patient rechaza patient_id 20 (existe en NORTH) en SOUTH
+==> Estado normal tras las negativas (sin rastros)
+OK: sigue sin patient_id compartidos tras las negativas -> 
+OK: solo queda la semilla para patient_id 1 -> 1
+OK: solo queda la semilla para patient_id 4 -> 1
+==> Reconstruccion global mediante UNION ALL
+OK: reconstruccion global 10 registros -> 10
+OK: reconstruccion global 5 NORTH -> 5
+OK: reconstruccion global 5 SOUTH -> 5
+OK: reconstruccion incluye paciente 6 (NORTH) -> 1
+OK: reconstruccion incluye paciente 7 (SOUTH) -> 1
+OK: reconstruccion global sin patient_id duplicados -> 0
+All fragmentation horizontal tests passed.
+==> [fragmentation-horizontal] PASS
+
+==> [fragmentation-vertical] proyecto aislado: globalhealth-test-fragmentation-vertical
+#1 [internal] load local bake definitions
+#1 reading from stdin 856B 0.0s done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile
+#2 transferring dockerfile: 212B done
+#2 DONE 0.0s
+
+#3 [internal] load metadata for docker.io/library/postgres:16-bookworm
+#3 DONE 2.9s
+
+#4 [internal] load .dockerignore
+#4 transferring context: 2B done
+#4 DONE 0.0s
+
+#5 [1/2] FROM docker.io/library/postgres:16-bookworm@sha256:64154d0babcb1741988719e703419af0382b19953706149f9872fbd0f438efa8
+#5 resolve docker.io/library/postgres:16-bookworm@sha256:64154d0babcb1741988719e703419af0382b19953706149f9872fbd0f438efa8 0.0s done
+#5 DONE 0.0s
+
+#6 [2/2] RUN apt-get update     && apt-get install --no-install-recommends -y         postgresql-contrib-16     && rm -rf /var/lib/apt/lists/*
+#6 CACHED
+
+#7 exporting to image
+#7 exporting layers done
+#7 exporting manifest sha256:169c93ff1d65a40c5430dfaaf55df68049b3fe2ec5ca91066228b4ac6ffdd6d7 done
+#7 exporting config sha256:b32e6de52c931c459341d88479176acc997e1ff24857c9e9796302ebe17db988
+#7 exporting config sha256:b32e6de52c931c459341d88479176acc997e1ff24857c9e9796302ebe17db988 done
+#7 exporting attestation manifest sha256:68a6c488c0961be37c869f1ef9260258cfa21b5febb1de66679d56ed1d582467 0.1s done
+#7 exporting manifest list sha256:f42d4d74868ff4f673f77d79c2ac826abd50bab168c2d1b1e2686fa28a68d2ea
+#7 exporting manifest list sha256:f42d4d74868ff4f673f77d79c2ac826abd50bab168c2d1b1e2686fa28a68d2ea 0.0s done
+#7 naming to docker.io/library/globalhealth-test-fragmentation-vertical-fragmentation-coordinator:local done
+#7 unpacking to docker.io/library/globalhealth-test-fragmentation-vertical-fragmentation-coordinator:local 0.0s done
+#7 DONE 0.2s
+
+#8 resolving provenance for metadata file
+#8 DONE 0.0s
+ globalhealth-test-fragmentation-vertical-fragmentation-coordinator:local  Built
+ Network globalhealth-test-fragmentation-vertical_globalhealth-network  Creating
+ Network globalhealth-test-fragmentation-vertical_globalhealth-network  Created
+ Volume globalhealth-test-fragmentation-vertical_postgres-fragment-financial-data  Creating
+ Volume globalhealth-test-fragmentation-vertical_postgres-fragment-financial-data  Created
+ Volume globalhealth-test-fragmentation-vertical_postgres-fragmentation-coordinator-data  Creating
+ Volume globalhealth-test-fragmentation-vertical_postgres-fragmentation-coordinator-data  Created
+ Volume globalhealth-test-fragmentation-vertical_postgres-fragment-public-data  Creating
+ Volume globalhealth-test-fragmentation-vertical_postgres-fragment-public-data  Created
+ Container globalhealth-test-fragmentation-vertical-fragment-financial-1  Creating
+ Container globalhealth-test-fragmentation-vertical-fragment-public-1  Creating
+ Container globalhealth-test-fragmentation-vertical-fragment-public-1  Created
+ Container globalhealth-test-fragmentation-vertical-fragment-financial-1  Created
+ Container globalhealth-test-fragmentation-vertical-fragmentation-coordinator-1  Creating
+ Container globalhealth-test-fragmentation-vertical-fragmentation-coordinator-1  Created
+ Container globalhealth-test-fragmentation-vertical-fragment-financial-1  Starting
+ Container globalhealth-test-fragmentation-vertical-fragment-public-1  Starting
+ Container globalhealth-test-fragmentation-vertical-fragment-financial-1  Started
+ Container globalhealth-test-fragmentation-vertical-fragment-public-1  Started
+ Container globalhealth-test-fragmentation-vertical-fragment-financial-1  Waiting
+ Container globalhealth-test-fragmentation-vertical-fragment-public-1  Waiting
+ Container globalhealth-test-fragmentation-vertical-fragment-public-1  Healthy
+ Container globalhealth-test-fragmentation-vertical-fragment-financial-1  Healthy
+ Container globalhealth-test-fragmentation-vertical-fragmentation-coordinator-1  Starting
+ Container globalhealth-test-fragmentation-vertical-fragmentation-coordinator-1  Started
+ Container globalhealth-test-fragmentation-vertical-fragmentation-coordinator-1  Waiting
+ Container globalhealth-test-fragmentation-vertical-fragment-public-1  Waiting
+ Container globalhealth-test-fragmentation-vertical-fragment-financial-1  Waiting
+ Container globalhealth-test-fragmentation-vertical-fragment-public-1  Healthy
+ Container globalhealth-test-fragmentation-vertical-fragment-financial-1  Healthy
+ Container globalhealth-test-fragmentation-vertical-fragmentation-coordinator-1  Healthy
+==> Datos en los fragmentos (mismos patient_id en ambos)
+OK: fragment-public contiene 6 registros -> 6
+OK: fragment-financial contiene 6 registros -> 6
+==> Roles de fragmento
+OK: public_role lee datos publicos -> 6
+OK: financial_role lee datos financieros -> 6
+OK: public_role no puede leer datos financieros en fragment-financial
+==> Coordinador con postgres_fdw
+OK: coordinador lee tabla remota publica -> 6
+OK: coordinador lee tabla remota financiera -> 6
+==> Conjuntos de llaves identicos en estado normal
+OK: EXCEPT publico menos financiero vacio -> 
+OK: EXCEPT financiero menos publico vacio -> 
+OK: cantidad de llaves publicas igual a financieras -> 0
+OK: sin huerfanos publicos en el estado normal -> 0
+OK: sin huerfanos financieros en el estado normal -> 0
+==> Reconstruccion completa del paciente
+OK: patients_full reconstruye 6 pacientes completos -> 6
+OK: reconstruccion sin columnas faltantes -> 0
+OK: paciente 2 reconstruido con datos publicos y financieros -> Luis Ramirez:VidaPlus:250.75
+==> Huerfanos como pruebas negativas temporales (ROLLBACK)
+OK: huerfano publico detectado y revertido (ROLLBACK)
+OK: huerfano financiero detectado y revertido (ROLLBACK)
+OK: sin rastros de huerfano publico tras ROLLBACK -> 0
+OK: sin rastros de huerfano financiero tras ROLLBACK -> 0
+OK: reconstruccion intacta tras las negativas -> 6
+==> Restriccion del rol publico en el coordinador
+OK: public_role en coordinador lee datos publicos -> 6
+OK: public_role no puede leer informacion financiera desde el coordinador
+All fragmentation vertical tests passed.
+==> [fragmentation-vertical] PASS
+
+==> [integration] proyecto aislado: globalhealth-test-integration
+==> Iniciando PostgreSQL Primary/Replica, MongoDB y backend
+ Network globalhealth-test-integration_globalhealth-network  Creating
+ Network globalhealth-test-integration_globalhealth-network  Created
+ Volume globalhealth-test-integration_mongodb-data  Creating
+ Volume globalhealth-test-integration_mongodb-data  Created
+ Container globalhealth-test-integration-mongodb-1  Creating
+ Container globalhealth-test-integration-mongodb-1  Created
+ Container globalhealth-test-integration-mongodb-1  Starting
+ Container globalhealth-test-integration-mongodb-1  Started
+ Container globalhealth-test-integration-mongodb-1  Waiting
+ Container globalhealth-test-integration-mongodb-1  Healthy
+#1 [internal] load local bake definitions
+#1 reading from stdin 2.08kB done
+#1 DONE 0.0s
+
+#2 [postgres-replica internal] load build definition from Dockerfile
+#2 transferring dockerfile: 636B 0.0s done
+#2 DONE 0.1s
+
+#3 [backend internal] load build definition from Dockerfile
+#3 transferring dockerfile: 700B 0.0s done
+#3 DONE 0.1s
+
+#4 [postgres-replica internal] load metadata for docker.io/library/postgres:16-bookworm
+#4 DONE 0.0s
+
+#5 [postgres-replica internal] load .dockerignore
+#5 transferring context: 2B done
+#5 DONE 0.0s
+
+#6 [postgres-replica internal] load build context
+#6 DONE 0.0s
+
+#7 [postgres-replica 1/7] FROM docker.io/library/postgres:16-bookworm@sha256:64154d0babcb1741988719e703419af0382b19953706149f9872fbd0f438efa8
+#7 resolve docker.io/library/postgres:16-bookworm@sha256:64154d0babcb1741988719e703419af0382b19953706149f9872fbd0f438efa8 0.1s done
+#7 resolve docker.io/library/postgres:16-bookworm@sha256:64154d0babcb1741988719e703419af0382b19953706149f9872fbd0f438efa8 0.1s done
+#7 DONE 0.1s
+
+#6 [postgres-primary internal] load build context
+#6 transferring context: 517B 0.0s done
+#6 DONE 0.0s
+
+#8 [postgres-replica 3/7] COPY docker/postgres/primary/init/ /docker-entrypoint-initdb.d/
+#8 CACHED
+
+#9 [postgres-replica 4/7] COPY docker/postgres/primary/postgresql.conf /etc/postgresql/primary-postgresql.conf
+#9 CACHED
+
+#10 [postgres-replica 5/7] COPY docker/postgres/primary/pg_hba.conf /etc/postgresql/primary-pg_hba.conf
+#10 CACHED
+
+#11 [postgres-replica 6/7] COPY docker/postgres/replica/entrypoint.sh /usr/local/bin/replica-entrypoint.sh
+#11 CACHED
+
+#12 [postgres-replica 2/7] RUN apt-get update     && apt-get install --no-install-recommends -y         postgresql-plpython3-16         python3-lxml     && rm -rf /var/lib/apt/lists/*
+#12 CACHED
+
+#13 [postgres-replica 7/7] RUN chmod +x /docker-entrypoint-initdb.d/*.sh /usr/local/bin/replica-entrypoint.sh
+#13 CACHED
+
+#14 [postgres-replica] exporting to image
+#14 exporting layers 0.0s done
+#14 exporting manifest sha256:5b9e442a17feb2d68f0ec3da0a1565b52214211f97dab398aba88c4f38159a81 0.0s done
+#14 exporting config sha256:7530e2c801939fb351e903cc3b578538491ae077d15847dca733e810f870ddcf 0.0s done
+#14 exporting attestation manifest sha256:ee3d298dab5b99cd54337af9479f9bf723dcaf26845e33d88f1a1d9faf085430 0.1s done
+#14 exporting manifest list sha256:1680e26d10581f69b9eee1cf4d3bbb04785c1fc56327ef24683507a6ceb0b4df
+#14 exporting manifest list sha256:1680e26d10581f69b9eee1cf4d3bbb04785c1fc56327ef24683507a6ceb0b4df 0.0s done
+#14 naming to docker.io/library/globalhealth-test-integration-postgres-replica:local 0.0s done
+#14 unpacking to docker.io/library/globalhealth-test-integration-postgres-replica:local 0.0s done
+#14 DONE 0.4s
+
+#15 [postgres-primary] exporting to image
+#15 exporting layers 0.0s done
+#15 exporting manifest sha256:cdaedb3a8b0d1dbcf395f57eaa3bd3e582487f6ed8ebc9c62bd4d1a83bb0ee27 0.0s done
+#15 exporting config sha256:5f4501577f61ad454be6add9187f39662de2232bad0f85243ba1943998a4cf57 0.0s done
+#15 exporting attestation manifest sha256:589099d67784266976c712b9182534474ddeb4b2aadb5a7d62811937d6351e73 0.1s done
+#15 exporting manifest list sha256:9ea76b4a78b6cc33dc962f4274c552d82d90d3feb0156079a838eca8c20a2117 0.0s done
+#15 naming to docker.io/library/globalhealth-test-integration-postgres:local done
+#15 unpacking to docker.io/library/globalhealth-test-integration-postgres:local 0.0s done
+#15 DONE 0.4s
+
+#16 [backend internal] load metadata for docker.io/library/python:3.12-slim
+#16 ...
+
+#17 [postgres-replica] resolving provenance for metadata file
+#17 DONE 0.0s
+
+#18 [postgres-primary] resolving provenance for metadata file
+#18 DONE 0.0s
+
+#16 [backend internal] load metadata for docker.io/library/python:3.12-slim
+#16 DONE 7.3s
+
+#5 [backend internal] load .dockerignore
+#5 CACHED
+
+#19 [backend 1/8] FROM docker.io/library/python:3.12-slim@sha256:646fb0bca3dd3ea1bcc6feb72c17ed16eed6e10cffc732fcc1478bd3e7f02d7b
+#19 resolve docker.io/library/python:3.12-slim@sha256:646fb0bca3dd3ea1bcc6feb72c17ed16eed6e10cffc732fcc1478bd3e7f02d7b 0.0s done
+#19 DONE 0.0s
+
+#20 [backend internal] load build context
+#20 transferring context: 73.71kB 0.0s done
+#20 DONE 0.1s
+
+#21 [backend 2/8] WORKDIR /app
+#21 CACHED
+
+#22 [backend 3/8] RUN apt-get update     && apt-get install --no-install-recommends -y netcat-openbsd     && rm -rf /var/lib/apt/lists/*
+#22 CACHED
+
+#23 [backend 4/8] COPY backend/requirements.txt .
+#23 CACHED
+
+#24 [backend 5/8] RUN pip install --no-cache-dir -r requirements.txt
+#24 CACHED
+
+#25 [backend 6/8] COPY backend/app ./app
+#25 DONE 0.1s
+
+#26 [backend 7/8] COPY scripts/wait-for-service.sh /usr/local/bin/wait-for-service.sh
+#26 DONE 0.1s
+
+#27 [backend 8/8] RUN sed -i 's/\r$//' /usr/local/bin/wait-for-service.sh     && chmod +x /usr/local/bin/wait-for-service.sh
+#27 DONE 0.3s
+
+#28 [backend] exporting to image
+#28 exporting layers
+#28 exporting layers 0.4s done
+#28 exporting manifest sha256:3323b8d32682839e9f7d9c2842ea24da4f2d300d872ac09dbea18a7d1c10346a 0.0s done
+#28 exporting config sha256:afaf7640b6424241128569d1fabe9d322a20cf16e9fcf2ffdfb496aad9f26351 0.0s done
+#28 exporting attestation manifest sha256:9e46c335327ad0965a3541d77bcffd35b5699d76fd74b3002471731866044a7c 0.1s done
+#28 exporting manifest list sha256:975089f05a562f815488b07a0d36d7885b1c84361f7c85737b01cb16d6c1a393
+#28 exporting manifest list sha256:975089f05a562f815488b07a0d36d7885b1c84361f7c85737b01cb16d6c1a393 0.0s done
+#28 naming to docker.io/library/globalhealth-test-integration-backend:latest done
+#28 unpacking to docker.io/library/globalhealth-test-integration-backend:latest 0.1s done
+#28 DONE 0.7s
+
+#29 [backend] resolving provenance for metadata file
+#29 DONE 0.0s
+ globalhealth-test-integration-postgres:local  Built
+ globalhealth-test-integration-postgres-replica:local  Built
+ globalhealth-test-integration-backend  Built
+ Network globalhealth-test-integration_globalhealth-edge-network  Creating
+ Network globalhealth-test-integration_globalhealth-edge-network  Created
+ Volume globalhealth-test-integration_postgres-replica-data  Creating
+ Volume globalhealth-test-integration_postgres-replica-data  Created
+ Volume globalhealth-test-integration_postgres-primary-data  Creating
+ Volume globalhealth-test-integration_postgres-primary-data  Created
+ Container globalhealth-test-integration-postgres-primary-1  Creating
+ Container globalhealth-test-integration-postgres-primary-1  Created
+ Container globalhealth-test-integration-postgres-replica-1  Creating
+ Container globalhealth-test-integration-postgres-replica-1  Created
+ Container globalhealth-test-integration-backend-1  Creating
+ Container globalhealth-test-integration-backend-1  Created
+ Container globalhealth-test-integration-postgres-primary-1  Starting
+ Container globalhealth-test-integration-postgres-primary-1  Started
+ Container globalhealth-test-integration-postgres-primary-1  Waiting
+ Container globalhealth-test-integration-postgres-primary-1  Healthy
+ Container globalhealth-test-integration-postgres-replica-1  Starting
+ Container globalhealth-test-integration-postgres-replica-1  Started
+ Container globalhealth-test-integration-postgres-replica-1  Waiting
+ Container globalhealth-test-integration-postgres-primary-1  Waiting
+ Container globalhealth-test-integration-postgres-primary-1  Healthy
+ Container globalhealth-test-integration-postgres-replica-1  Healthy
+ Container globalhealth-test-integration-backend-1  Starting
+ Container globalhealth-test-integration-backend-1  Started
+ Container globalhealth-test-integration-postgres-primary-1  Waiting
+ Container globalhealth-test-integration-backend-1  Waiting
+ Container globalhealth-test-integration-postgres-replica-1  Waiting
+ Container globalhealth-test-integration-postgres-replica-1  Healthy
+ Container globalhealth-test-integration-postgres-primary-1  Healthy
+ Container globalhealth-test-integration-backend-1  Healthy
+==> Preparando MOR y XML/XSD en PostgreSQL Primary
+NOTICE:  schema "integration_test" does not exist, skipping
+NOTICE:  extension "plpython3u" already exists, skipping
+ register_xml_schema 
+---------------------
+ 
+(1 row)
+
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+DO
+                evidence                 
+-----------------------------------------
+ OK: medico creado en PostgreSQL Primary
+(1 row)
+
+              evidence               
+-------------------------------------
+ OK: expediente XML valido insertado
+(1 row)
+
+                   evidence                    
+-----------------------------------------------
+ OK: expediente XML invalido rechazado por XSD
+(1 row)
+
+==> Preparando colecciones de telemetria en MongoDB
+ globalhealth-test-integration-mongodb-1 copy database/mongodb/01_collections.js to globalhealth-test-integration-mongodb-1:/tmp/integration-collections.js Copying
+ globalhealth-test-integration-mongodb-1 copy database/mongodb/01_collections.js to globalhealth-test-integration-mongodb-1:/tmp/integration-collections.js Copied
+==> Creando paciente, sesion y logs de sensores
+OK: paciente creado en MongoDB
+OK: sesion creada
+OK: primer log de sensor insertado
+OK: segundo log de sensor insertado
+==> Verificando salud MongoDB sanitizada
+OK: MongoDB saludable
+OK: proveedor MongoDB local
+OK: base MongoDB declarada
+==> Filtrando logs por rango temporal
+OK: filtro temporal incluye log esperado
+==> Ejecutando resumen agregado por paciente y sensor
+OK: resumen cuenta muestras
+OK: lookup agrega nombre del paciente
+==> Ejecutando lookup paciente -> sesiones -> logs
+OK: lookup incluye la sesion
+OK: lookup incluye el primer log
+OK: lookup incluye el segundo log
+==> Consultando dashboard desde PostgreSQL Replica
+OK: dashboard declara la replica como fuente
+OK: dashboard se ejecuto en hot standby
+OK: dashboard consulta la base integral
+==> Reconstruyendo fragmentacion horizontal
+ globalhealth-test-integration-fragmentation-coordinator-horizontal:local  Built
+ Volume globalhealth-test-integration_postgres-fragmentation-horizontal-coordinator-data  Creating
+ Volume globalhealth-test-integration_postgres-fragmentation-horizontal-coordinator-data  Created
+ Volume globalhealth-test-integration_postgres-fragment-south-data  Creating
+ Volume globalhealth-test-integration_postgres-fragment-south-data  Created
+ Volume globalhealth-test-integration_postgres-fragment-north-data  Creating
+ Volume globalhealth-test-integration_postgres-fragment-north-data  Created
+ Container globalhealth-test-integration-fragment-south-1  Creating
+ Container globalhealth-test-integration-fragment-north-1  Creating
+ Container globalhealth-test-integration-fragment-south-1  Created
+ Container globalhealth-test-integration-fragment-north-1  Created
+ Container globalhealth-test-integration-fragmentation-coordinator-horizontal-1  Creating
+ Container globalhealth-test-integration-fragmentation-coordinator-horizontal-1  Created
+ Container globalhealth-test-integration-fragment-north-1  Starting
+ Container globalhealth-test-integration-fragment-south-1  Starting
+ Container globalhealth-test-integration-fragment-north-1  Started
+ Container globalhealth-test-integration-fragment-south-1  Started
+ Container globalhealth-test-integration-fragment-south-1  Waiting
+ Container globalhealth-test-integration-fragment-north-1  Waiting
+ Container globalhealth-test-integration-fragment-north-1  Healthy
+ Container globalhealth-test-integration-fragment-south-1  Healthy
+ Container globalhealth-test-integration-fragmentation-coordinator-horizontal-1  Starting
+ Container globalhealth-test-integration-fragmentation-coordinator-horizontal-1  Started
+ Container globalhealth-test-integration-fragment-north-1  Waiting
+ Container globalhealth-test-integration-fragmentation-coordinator-horizontal-1  Waiting
+ Container globalhealth-test-integration-fragment-south-1  Waiting
+ Container globalhealth-test-integration-fragment-north-1  Healthy
+ Container globalhealth-test-integration-fragment-south-1  Healthy
+ Container globalhealth-test-integration-fragmentation-coordinator-horizontal-1  Healthy
+#1 [internal] load local bake definitions
+#1 reading from stdin 878B done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile
+#2 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile
+#2 transferring dockerfile: 212B 0.0s done
+#2 DONE 0.0s
+
+#3 [internal] load metadata for docker.io/library/postgres:16-bookworm
+#3 DONE 0.1s
+
+#4 [internal] load .dockerignore
+#4 transferring context: 2B done
+#4 DONE 0.0s
+
+#5 [1/2] FROM docker.io/library/postgres:16-bookworm@sha256:64154d0babcb1741988719e703419af0382b19953706149f9872fbd0f438efa8
+#5 resolve docker.io/library/postgres:16-bookworm@sha256:64154d0babcb1741988719e703419af0382b19953706149f9872fbd0f438efa8 0.0s done
+#5 DONE 0.0s
+
+#6 [2/2] RUN apt-get update     && apt-get install --no-install-recommends -y         postgresql-contrib-16     && rm -rf /var/lib/apt/lists/*
+#6 CACHED
+
+#7 exporting to image
+#7 exporting layers done
+#7 exporting manifest sha256:29d4dd7d1e3632d6d0f9b70d618009ee9cdf45114622916590839da3f6b0bf32 done
+#7 exporting config sha256:0cc0d961cdd592d09f8226e058f6622b52a0344c9f10ee69b077bc3525e283c7
+#7 exporting config sha256:0cc0d961cdd592d09f8226e058f6622b52a0344c9f10ee69b077bc3525e283c7 done
+#7 exporting attestation manifest sha256:2dd8c6b2fde8f4948f42e3572fbcc743eed1670f1cd3a19f45c032c3e3a85581 0.1s done
+#7 exporting manifest list sha256:5510e0d92f1cf3c050f82bd6311021accc018f2bf92956017c157c2fb5a40000
+#7 exporting manifest list sha256:5510e0d92f1cf3c050f82bd6311021accc018f2bf92956017c157c2fb5a40000 0.0s done
+#7 naming to docker.io/library/globalhealth-test-integration-fragmentation-coordinator-horizontal:local done
+#7 unpacking to docker.io/library/globalhealth-test-integration-fragmentation-coordinator-horizontal:local 0.0s done
+#7 DONE 0.2s
+
+#8 resolving provenance for metadata file
+#8 DONE 0.0s
+==> Limpiando y sembrando datos de prueba (llaves disjuntas)
+==> Datos semilla
+OK: fragment-north semilla 3 registros -> 3
+OK: fragment-south semilla 3 registros -> 3
+==> Restricciones CHECK por region
+OK: fragment-north solo region NORTH -> 3
+OK: fragment-south solo region SOUTH -> 3
+==> Conjuntos de llaves disjuntos en estado normal
+OK: sin patient_id compartidos entre NORTH y SOUTH (INTERSECT vacio) -> 
+==> Ruta normal de escritura: insert_patient via coordinador
+OK: enrutamiento NORTH inserta en fragment-north -> 1
+OK: enrutamiento NORTH no toca fragment-south -> 0
+OK: enrutamiento SOUTH inserta en fragment-south -> 1
+OK: enrutamiento SOUTH no toca fragment-north -> 0
+OK: insercion normal NORTH via coordinador -> 1
+OK: insercion normal SOUTH via coordinador -> 1
+==> Acceso administrativo directo a un fragmento
+OK: fragment-north rechaza insercion con region SOUTH
+OK: fragment-south rechaza insercion con region NORTH
+==> Duplicados entre nodos (negativas con ROLLBACK)
+OK: insert_patient rechaza patient_id 1 (existe en NORTH) en SOUTH
+OK: insert_patient rechaza patient_id 4 (existe en SOUTH) en NORTH
+OK: insert_patient rechaza patient_id 20 (existe en NORTH) en SOUTH
+==> Estado normal tras las negativas (sin rastros)
+OK: sigue sin patient_id compartidos tras las negativas -> 
+OK: solo queda la semilla para patient_id 1 -> 1
+OK: solo queda la semilla para patient_id 4 -> 1
+==> Reconstruccion global mediante UNION ALL
+OK: reconstruccion global 10 registros -> 10
+OK: reconstruccion global 5 NORTH -> 5
+OK: reconstruccion global 5 SOUTH -> 5
+OK: reconstruccion incluye paciente 6 (NORTH) -> 1
+OK: reconstruccion incluye paciente 7 (SOUTH) -> 1
+OK: reconstruccion global sin patient_id duplicados -> 0
+All fragmentation horizontal tests passed.
+==> Reconstruyendo fragmentacion vertical
+ globalhealth-test-integration-fragmentation-coordinator:local  Built
+ Volume globalhealth-test-integration_postgres-fragment-public-data  Creating
+ Volume globalhealth-test-integration_postgres-fragment-public-data  Created
+ Volume globalhealth-test-integration_postgres-fragmentation-coordinator-data  Creating
+ Volume globalhealth-test-integration_postgres-fragmentation-coordinator-data  Created
+ Volume globalhealth-test-integration_postgres-fragment-financial-data  Creating
+ Volume globalhealth-test-integration_postgres-fragment-financial-data  Created
+ Container globalhealth-test-integration-fragment-public-1  Creating
+ Container globalhealth-test-integration-fragment-financial-1  Creating
+ Container globalhealth-test-integration-fragment-financial-1  Created
+ Container globalhealth-test-integration-fragment-public-1  Created
+ Container globalhealth-test-integration-fragmentation-coordinator-1  Creating
+ Container globalhealth-test-integration-fragmentation-coordinator-1  Created
+ Container globalhealth-test-integration-fragment-financial-1  Starting
+ Container globalhealth-test-integration-fragment-public-1  Starting
+ Container globalhealth-test-integration-fragment-public-1  Started
+ Container globalhealth-test-integration-fragment-financial-1  Started
+ Container globalhealth-test-integration-fragment-public-1  Waiting
+ Container globalhealth-test-integration-fragment-financial-1  Waiting
+ Container globalhealth-test-integration-fragment-public-1  Healthy
+ Container globalhealth-test-integration-fragment-financial-1  Healthy
+ Container globalhealth-test-integration-fragmentation-coordinator-1  Starting
+ Container globalhealth-test-integration-fragmentation-coordinator-1  Started
+ Container globalhealth-test-integration-fragment-public-1  Waiting
+ Container globalhealth-test-integration-fragmentation-coordinator-1  Waiting
+ Container globalhealth-test-integration-fragment-financial-1  Waiting
+ Container globalhealth-test-integration-fragment-public-1  Healthy
+ Container globalhealth-test-integration-fragment-financial-1  Healthy
+ Container globalhealth-test-integration-fragmentation-coordinator-1  Healthy
+#1 [internal] load local bake definitions
+#1 reading from stdin 834B done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile
+#2 transferring dockerfile: 212B done
+#2 DONE 0.0s
+
+#3 [internal] load metadata for docker.io/library/postgres:16-bookworm
+#3 DONE 0.1s
+
+#4 [internal] load .dockerignore
+#4 transferring context:
+#4 transferring context: 2B done
+#4 DONE 0.0s
+
+#5 [1/2] FROM docker.io/library/postgres:16-bookworm@sha256:64154d0babcb1741988719e703419af0382b19953706149f9872fbd0f438efa8
+#5 resolve docker.io/library/postgres:16-bookworm@sha256:64154d0babcb1741988719e703419af0382b19953706149f9872fbd0f438efa8 0.1s done
+#5 DONE 0.1s
+
+#6 [2/2] RUN apt-get update     && apt-get install --no-install-recommends -y         postgresql-contrib-16     && rm -rf /var/lib/apt/lists/*
+#6 CACHED
+
+#7 exporting to image
+#7 exporting layers done
+#7 exporting manifest sha256:2c1f82c468f211dc15602ee87c14db850b4168e1ef4c9e08a53931a3e92f9186 done
+#7 exporting config sha256:966377536cc81ba2333765466a78505684fa9dfa46a2c1934e05c5ae7d6174f1 done
+#7 exporting attestation manifest sha256:f4a63ea56205e54622f7ee2985c7fe4b79be0558ff3b4502de4c3775694e21d5 0.1s done
+#7 exporting manifest list sha256:1b0b0b58e08ce38c1021449d9e35e61a1a1fba16fb7a621c82483695f3366ef7
+#7 exporting manifest list sha256:1b0b0b58e08ce38c1021449d9e35e61a1a1fba16fb7a621c82483695f3366ef7 0.0s done
+#7 naming to docker.io/library/globalhealth-test-integration-fragmentation-coordinator:local done
+#7 unpacking to docker.io/library/globalhealth-test-integration-fragmentation-coordinator:local 0.0s done
+#7 DONE 0.3s
+
+#8 resolving provenance for metadata file
+#8 DONE 0.0s
+==> Datos en los fragmentos (mismos patient_id en ambos)
+OK: fragment-public contiene 6 registros -> 6
+OK: fragment-financial contiene 6 registros -> 6
+==> Roles de fragmento
+OK: public_role lee datos publicos -> 6
+OK: financial_role lee datos financieros -> 6
+OK: public_role no puede leer datos financieros en fragment-financial
+==> Coordinador con postgres_fdw
+OK: coordinador lee tabla remota publica -> 6
+OK: coordinador lee tabla remota financiera -> 6
+==> Conjuntos de llaves identicos en estado normal
+OK: EXCEPT publico menos financiero vacio -> 
+OK: EXCEPT financiero menos publico vacio -> 
+OK: cantidad de llaves publicas igual a financieras -> 0
+OK: sin huerfanos publicos en el estado normal -> 0
+OK: sin huerfanos financieros en el estado normal -> 0
+==> Reconstruccion completa del paciente
+OK: patients_full reconstruye 6 pacientes completos -> 6
+OK: reconstruccion sin columnas faltantes -> 0
+OK: paciente 2 reconstruido con datos publicos y financieros -> Luis Ramirez:VidaPlus:250.75
+==> Huerfanos como pruebas negativas temporales (ROLLBACK)
+OK: huerfano publico detectado y revertido (ROLLBACK)
+OK: huerfano financiero detectado y revertido (ROLLBACK)
+OK: sin rastros de huerfano publico tras ROLLBACK -> 0
+OK: sin rastros de huerfano financiero tras ROLLBACK -> 0
+OK: reconstruccion intacta tras las negativas -> 6
+==> Restriccion del rol publico en el coordinador
+OK: public_role en coordinador lee datos publicos -> 6
+OK: public_role no puede leer informacion financiera desde el coordinador
+All fragmentation vertical tests passed.
+==> Verificando que no se expongan credenciales
+OK: respuestas y logs no exponen credenciales
+All integration tests passed.
+==> [integration] PASS
+
+All test suites passed.
+result=PASS
+exit_code=0

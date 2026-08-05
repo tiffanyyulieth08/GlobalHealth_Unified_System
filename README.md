@@ -67,9 +67,10 @@ Copy-Item .env.example .env
 ```
 
 Antes de iniciar los servicios, actualiza en `.env` al menos
-`POSTGRES_PASSWORD` y `POSTGRES_REPLICATION_PASSWORD`. Conserva
-`POSTGRES_WRITE_URL` apuntando al primario y `POSTGRES_READ_URL` apuntando a la
-replica. Para MongoDB local conserva `MONGODB_PROVIDER=local`. Para Atlas usa
+`POSTGRES_PASSWORD` y `POSTGRES_REPLICATION_PASSWORD`. Compose construye
+`POSTGRES_WRITE_URL` hacia Primary y `POSTGRES_READ_URL` hacia Replica; no
+intercambies esos destinos. Para MongoDB local conserva
+`MONGODB_PROVIDER=local`. Para Atlas usa
 `MONGODB_PROVIDER=atlas` y proporciona `MONGODB_URI` mediante una variable de
 entorno o un gestor de secretos. La URI nunca debe entrar en Git.
 
@@ -314,9 +315,10 @@ sh scripts/test-fragmentation.sh
 
 #### Resultados esperados
 
-La prueba vertical confirma 6 registros en cada fragmento, la reconstruccion de 5
-pacientes completos mediante JOIN, 1 registro huerfano en cada fragmento y que el
-rol publico no accede a informacion financiera. La prueba horizontal confirma las
+La prueba vertical confirma 6 registros en cada fragmento, la reconstrucción de 6
+pacientes completos mediante JOIN, ausencia de huérfanos en el estado normal,
+detección temporal de huérfanos con `ROLLBACK` y que el rol público no accede a
+información financiera. La prueba horizontal confirma las
 restricciones CHECK por region, el enrutamiento de inserciones segun la region, el
 rechazo de inserciones en el nodo equivocado, la deteccion de `patient_id`
 duplicado entre nodos y la reconstruccion global de 10 registros mediante
@@ -343,3 +345,58 @@ fines de diagnóstico:
 ```bash
 KEEP_INTEGRATION_ENV=1 sh scripts/test-all.sh
 ```
+
+## Validación final y entrega
+
+La guía reproducible de la defensa está en
+[`docs/defense/demo-guide.md`](docs/defense/demo-guide.md). Antes de preparar
+una entrega:
+
+```bash
+git diff --check
+docker compose config --quiet
+docker compose down -v --remove-orphans
+docker compose up -d --build --wait --wait-timeout 240
+sh scripts/test-all.sh
+sh scripts/chaos-replication.sh
+sh scripts/test-mongodb-atlas.sh
+```
+
+El último comando requiere una URI Atlas real. Una salida `BLOCKED` o `FAIL` no
+se puede presentar como evidencia exitosa. La evidencia de esta versión se
+guarda en `docs/evidence/final/` con fecha, rama, commit probado y resultado.
+Las carpetas de evidencia anteriores son históricas.
+
+Para un reset controlado de Replica, sin eliminar Primary, seguir
+[`docs/architecture/postgresql-primary-replica.md`](docs/architecture/postgresql-primary-replica.md).
+
+### ZIP sin Git ni secretos
+
+Desde el directorio padre, en una shell POSIX:
+
+```bash
+zip -r GlobalHealth_Unified_System.zip GlobalHealth_Unified_System \
+  -x 'GlobalHealth_Unified_System/.git/*' \
+     'GlobalHealth_Unified_System/.env' \
+     'GlobalHealth_Unified_System/.env.*' \
+     'GlobalHealth_Unified_System/**/__pycache__/*' \
+     'GlobalHealth_Unified_System/**/*.pyc'
+```
+
+En PowerShell:
+
+```powershell
+$source = Resolve-Path .\GlobalHealth_Unified_System
+$stage = Join-Path $env:TEMP 'GlobalHealth_Unified_System-release'
+robocopy $source $stage /E /XD .git __pycache__ /XF .env .env.local *.pyc
+Compress-Archive -Path $stage -DestinationPath .\GlobalHealth_Unified_System.zip -Force
+```
+
+Verificar el contenido antes de distribuirlo:
+
+```bash
+unzip -l GlobalHealth_Unified_System.zip | grep -E '(^|/)\.git/|(^|/)\.env($|\.)'
+```
+
+El resultado esperado es vacío. `.git` no se elimina del repositorio de
+trabajo; solo se excluye del artefacto.

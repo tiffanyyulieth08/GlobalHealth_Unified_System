@@ -1,0 +1,12 @@
+timestamp=2026-08-05T14:27:04-06:00
+commit=36d75b21a2e63f32a53797bcee63d4c95fb84750
+branch=feature/atlas-security-final-release
+command=sh scripts/test-mongodb-atlas.sh
+source=user-provided terminal output
+==> Validando operaciones Atlas en una base temporal
+OK: colecciones, índices, CRUD, agregación y lookup
+==> Iniciando backend en modo Atlas sin el servicio MongoDB local
+OK: health status=healthy provider=atlas database=base_temporal
+PASS: validación real de MongoDB Atlas completada sin exponer la URI.
+result=PASS
+exit_code=0
