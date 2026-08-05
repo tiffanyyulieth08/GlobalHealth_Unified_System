@@ -11,6 +11,7 @@ EVIDENCE_DIR="${CHAOS_EVIDENCE_DIR:-docs/evidence/replication-chaos}"
 MAX_ATTEMPTS="${CHAOS_MAX_ATTEMPTS:-60}"
 HTTP_TIMEOUT="${CHAOS_HTTP_TIMEOUT:-15}"
 PROBE_ID="chaos-$(date +%s)-$$"
+RECOVERY_PROBE_ID="$PROBE_ID-recovered"
 PRIMARY_NEEDS_RESTART=0
 
 compose() {
@@ -222,5 +223,41 @@ assert_eq "$replica_streaming" "t" "Replica reporta WAL receiver streaming"
         FROM pg_stat_wal_receiver
     "
 } > "$EVIDENCE_DIR/09-streaming-restored.txt"
+
+printf '==> Escribiendo un dato nuevo después de recuperar Primary\n'
+RECOVERY_WRITE_HTTP="$(
+    curl --silent --show-error \
+        --max-time "$HTTP_TIMEOUT" \
+        --request POST \
+        --output "$EVIDENCE_DIR/10-recovery-write.json" \
+        --write-out '%{http_code}' \
+        "$BASE_URL/chaos/replication/write?probe_id=$RECOVERY_PROBE_ID" || true
+)"
+assert_eq "$RECOVERY_WRITE_HTTP" "201" "la escritura posterior a la recuperación responde HTTP 201"
+printf 'http_status=%s\nprobe_id=%s\n' \
+    "$RECOVERY_WRITE_HTTP" "$RECOVERY_PROBE_ID" > "$EVIDENCE_DIR/10-recovery-write-http.txt"
+
+printf '==> Confirmando el dato nuevo en Replica\n'
+attempt=1
+recovery_replicated="f"
+while [ "$attempt" -le "$MAX_ATTEMPTS" ]; do
+    recovery_replicated="$(
+        replica_query "
+            SELECT EXISTS (
+                SELECT 1
+                FROM chaos_replication_probe
+                WHERE probe_id = '$RECOVERY_PROBE_ID'
+            )
+        " 2>/dev/null || true
+    )"
+    if [ "$recovery_replicated" = "t" ]; then
+        break
+    fi
+    attempt=$((attempt + 1))
+    sleep 1
+done
+assert_eq "$recovery_replicated" "t" "el dato posterior a la recuperación llegó a Replica"
+printf 'probe_id=%s\nreplicated=true\nattempts=%s\n' \
+    "$RECOVERY_PROBE_ID" "$attempt" > "$EVIDENCE_DIR/11-recovery-replica.txt"
 
 printf 'All replication chaos checks passed.\n'

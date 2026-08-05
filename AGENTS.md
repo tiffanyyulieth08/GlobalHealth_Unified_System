@@ -12,13 +12,23 @@ Guia para agentes de IA y desarrolladores que trabajan en GlobalHealth Unified S
 
 ## Estado actual del proyecto
 
-Fase inicial: solo estructura del repositorio y archivos base. No implementado todavia:
+Fase de integración y release. Están implementados:
 
-- MOR (Modelo Objeto Relacional).
-- XML/XSD.
-- MongoDB.
-- Replicacion PostgreSQL.
-- Fragmentacion (horizontal y vertical).
+- MOR con tipos compuestos, tabla tipada, herencia, arreglos, funciones, CRUD y pruebas.
+- XML/XSD con registro de esquemas, validación mediante `plpython3u`/`lxml`,
+  XPath, `XMLTABLE`, operaciones y pruebas positivas y negativas.
+- MongoDB local y Atlas con colecciones, validadores, índices, CRUD,
+  agregaciones, API FastAPI y prueba Atlas aislada.
+- PostgreSQL Primary/Replica con streaming asíncrono, separación de conexiones
+  de lectura/escritura, estado operativo y prueba de caos sin promoción.
+- Fragmentación horizontal y vertical con coordinadores `postgres_fdw`,
+  reconstrucción y pruebas de duplicados y huérfanos.
+- Pruebas unitarias, por subsistema e integración mediante Docker Compose.
+
+La evidencia actual de una entrega debe generarse en `docs/evidence/final/`.
+Los directorios `docs/evidence/integration/` y
+`docs/evidence/replication-chaos/` contienen ejecuciones históricas y no
+sustituyen la validación final.
 
 ## Estructura esperada
 
@@ -38,5 +48,9 @@ Fase inicial: solo estructura del repositorio y archivos base. No implementado t
 
 ## Verificacion
 
+- `docker compose config --quiet` para validar la orquestación.
+- `sh scripts/test-all.sh` para la puerta funcional local completa.
+- `sh scripts/chaos-replication.sh` para la recuperación controlada.
+- `sh scripts/test-mongodb-atlas.sh` solo con una URI Atlas real.
 - `git status --short` para revisar cambios pendientes.
 - `git diff --check` para detectar problemas de espacios/conflictos.

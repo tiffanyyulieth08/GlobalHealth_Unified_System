@@ -1,0 +1,14 @@
+{
+  "timestamp": "2026-08-05T14:34:33-06:00",
+  "commit": "36d75b21a2e63f32a53797bcee63d4c95fb84750",
+  "branch": "feature/atlas-security-final-release",
+  "result": "PASS",
+  "response": {
+    "source": "replica",
+    "in_recovery": true,
+    "database_name": "globalhealth",
+    "observed_at": "2026-08-05T20:34:34.698392Z",
+    "database_size_bytes": 7732247,
+    "active_connections": 1
+  }
+}

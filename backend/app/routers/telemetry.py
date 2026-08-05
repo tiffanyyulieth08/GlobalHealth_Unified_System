@@ -7,6 +7,7 @@ from pymongo import DESCENDING
 from pymongo.database import Database
 from pymongo.errors import DuplicateKeyError, PyMongoError
 
+from app.config import get_settings
 from app.mongodb import get_database
 
 
@@ -17,9 +18,9 @@ MongoDatabase = Annotated[Database, Depends(get_database)]
 class PatientCreate(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
-    patient_id: str = Field(alias="patientId", min_length=1)
-    first_name: str = Field(alias="firstName", min_length=1)
-    last_name: str = Field(alias="lastName", min_length=1)
+    patient_id: str = Field(alias="patientId", min_length=1, max_length=64)
+    first_name: str = Field(alias="firstName", min_length=1, max_length=100)
+    last_name: str = Field(alias="lastName", min_length=1, max_length=100)
     date_of_birth: datetime = Field(alias="dateOfBirth")
     sex: Literal["female", "male", "other", "unknown"]
     active: bool = True
@@ -28,9 +29,9 @@ class PatientCreate(BaseModel):
 class SessionCreate(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
-    session_id: str = Field(alias="sessionId", min_length=1)
-    patient_id: str = Field(alias="patientId", min_length=1)
-    device_id: str = Field(alias="deviceId", min_length=1)
+    session_id: str = Field(alias="sessionId", min_length=1, max_length=64)
+    patient_id: str = Field(alias="patientId", min_length=1, max_length=64)
+    device_id: str = Field(alias="deviceId", min_length=1, max_length=128)
     started_at: datetime = Field(alias="startedAt")
     ended_at: datetime | None = Field(default=None, alias="endedAt")
     status: Literal["active", "completed", "cancelled"] = "active"
@@ -39,14 +40,14 @@ class SessionCreate(BaseModel):
 class SensorLogCreate(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
-    log_id: str = Field(alias="logId", min_length=1)
-    session_id: str = Field(alias="sessionId", min_length=1)
-    patient_id: str = Field(alias="patientId", min_length=1)
+    log_id: str = Field(alias="logId", min_length=1, max_length=64)
+    session_id: str = Field(alias="sessionId", min_length=1, max_length=64)
+    patient_id: str = Field(alias="patientId", min_length=1, max_length=64)
     sensor_type: Literal[
         "heart_rate", "oxygen_saturation", "temperature", "blood_pressure"
     ] = Field(alias="sensorType")
-    value: float
-    unit: str = Field(min_length=1)
+    value: float = Field(allow_inf_nan=False)
+    unit: str = Field(min_length=1, max_length=32)
     recorded_at: datetime = Field(alias="recordedAt")
 
 
@@ -65,7 +66,11 @@ def mongodb_health(database: MongoDatabase) -> dict[str, str]:
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="MongoDB is unavailable",
         ) from error
-    return {"status": "healthy", "database": database.name}
+    return {
+        "status": "healthy",
+        "provider": get_settings().mongodb_provider,
+        "database": database.name,
+    }
 
 
 @router.post("/patients", status_code=status.HTTP_201_CREATED)
@@ -138,14 +143,37 @@ def create_sensor_log(log: SensorLogCreate, database: MongoDatabase) -> dict[str
 def list_sensor_logs(
     database: MongoDatabase,
     session_id: Annotated[str | None, Query(alias="sessionId")] = None,
-    sensor_type: Annotated[str | None, Query(alias="sensorType")] = None,
+    sensor_type: Annotated[
+        Literal[
+            "heart_rate",
+            "oxygen_saturation",
+            "temperature",
+            "blood_pressure",
+        ]
+        | None,
+        Query(alias="sensorType"),
+    ] = None,
+    recorded_from: Annotated[datetime | None, Query(alias="recordedFrom")] = None,
+    recorded_to: Annotated[datetime | None, Query(alias="recordedTo")] = None,
     limit: Annotated[int, Query(ge=1, le=500)] = 100,
 ) -> list[dict[str, Any]]:
+    if recorded_from and recorded_to and recorded_from > recorded_to:
+        raise HTTPException(
+            status_code=422,
+            detail="recordedFrom must be before or equal to recordedTo",
+        )
     filters: dict[str, Any] = {}
     if session_id:
         filters["sessionId"] = session_id
     if sensor_type:
         filters["sensorType"] = sensor_type
+    if recorded_from or recorded_to:
+        recorded_at: dict[str, datetime] = {}
+        if recorded_from:
+            recorded_at["$gte"] = recorded_from
+        if recorded_to:
+            recorded_at["$lte"] = recorded_to
+        filters["recordedAt"] = recorded_at
     cursor = (
         database.sensor_logs.find(filters, {"_id": 0})
         .sort("recordedAt", DESCENDING)
@@ -154,8 +182,110 @@ def list_sensor_logs(
     return list(cursor)
 
 
+@router.get("/telemetry/summary")
+def telemetry_summary(
+    database: MongoDatabase,
+    patient_id: Annotated[str | None, Query(alias="patientId")] = None,
+    recorded_from: Annotated[datetime | None, Query(alias="recordedFrom")] = None,
+    recorded_to: Annotated[datetime | None, Query(alias="recordedTo")] = None,
+    limit: Annotated[int, Query(ge=1, le=100)] = 50,
+) -> dict[str, Any]:
+    if recorded_from and recorded_to and recorded_from > recorded_to:
+        raise HTTPException(
+            status_code=422,
+            detail="recordedFrom must be before or equal to recordedTo",
+        )
+    match: dict[str, Any] = {}
+    if patient_id:
+        match["patientId"] = patient_id
+    if recorded_from or recorded_to:
+        match["recordedAt"] = {}
+        if recorded_from:
+            match["recordedAt"]["$gte"] = recorded_from
+        if recorded_to:
+            match["recordedAt"]["$lte"] = recorded_to
+
+    pipeline: list[dict[str, Any]] = []
+    if match:
+        pipeline.append({"$match": match})
+    pipeline.extend(
+        [
+            {
+                "$group": {
+                    "_id": {
+                        "patientId": "$patientId",
+                        "sensorType": "$sensorType",
+                        "unit": "$unit",
+                    },
+                    "sampleCount": {"$sum": 1},
+                    "minimum": {"$min": "$value"},
+                    "maximum": {"$max": "$value"},
+                    "average": {"$avg": "$value"},
+                    "firstRecordedAt": {"$min": "$recordedAt"},
+                    "lastRecordedAt": {"$max": "$recordedAt"},
+                    "sessionIds": {"$addToSet": "$sessionId"},
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "patients",
+                    "localField": "_id.patientId",
+                    "foreignField": "patientId",
+                    "as": "patient",
+                }
+            },
+            {"$unwind": {"path": "$patient", "preserveNullAndEmptyArrays": True}},
+            {
+                "$project": {
+                    "_id": 0,
+                    "patientId": "$_id.patientId",
+                    "patientName": {
+                        "$cond": [
+                            {"$ne": [{"$type": "$patient"}, "missing"]},
+                            {
+                                "$concat": [
+                                    "$patient.firstName",
+                                    " ",
+                                    "$patient.lastName",
+                                ]
+                            },
+                            None,
+                        ]
+                    },
+                    "sensorType": "$_id.sensorType",
+                    "unit": "$_id.unit",
+                    "sampleCount": 1,
+                    "minimum": 1,
+                    "maximum": 1,
+                    "average": {"$round": ["$average", 2]},
+                    "firstRecordedAt": 1,
+                    "lastRecordedAt": 1,
+                    "sessionIds": 1,
+                }
+            },
+            {"$sort": {"patientId": 1, "sensorType": 1}},
+            {"$limit": limit},
+        ]
+    )
+    results = list(database.sensor_logs.aggregate(pipeline))
+    return {
+        "aggregation": "sensor_logs grouped by patient and sensor with patient lookup",
+        "count": len(results),
+        "limit": limit,
+        "results": results,
+    }
+
+
 @router.get("/patients/{patient_id}/telemetry")
-def patient_telemetry(patient_id: str, database: MongoDatabase) -> dict[str, Any]:
+def patient_telemetry(
+    patient_id: str,
+    database: MongoDatabase,
+    session_limit: Annotated[int, Query(alias="sessionLimit", ge=1, le=100)] = 20,
+    logs_per_session: Annotated[
+        int,
+        Query(alias="logsPerSession", ge=1, le=500),
+    ] = 100,
+) -> dict[str, Any]:
     pipeline = [
         {"$match": {"patientId": patient_id}},
         {
@@ -165,6 +295,7 @@ def patient_telemetry(patient_id: str, database: MongoDatabase) -> dict[str, Any
                 "pipeline": [
                     {"$match": {"$expr": {"$eq": ["$patientId", "$$patientId"]}}},
                     {"$sort": {"startedAt": -1}},
+                    {"$limit": session_limit},
                     {
                         "$lookup": {
                             "from": "sensor_logs",
@@ -177,6 +308,8 @@ def patient_telemetry(patient_id: str, database: MongoDatabase) -> dict[str, Any
                                         }
                                     }
                                 },
+                                {"$sort": {"recordedAt": -1}},
+                                {"$limit": logs_per_session},
                                 {"$project": {"_id": 0}},
                             ],
                             "as": "logs",

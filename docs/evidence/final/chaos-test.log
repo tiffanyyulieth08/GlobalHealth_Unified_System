@@ -1,0 +1,183 @@
+timestamp=2026-08-05T14:32:55-06:00
+commit=36d75b21a2e63f32a53797bcee63d4c95fb84750
+branch=feature/atlas-security-final-release
+command=sh scripts/chaos-replication.sh
+==> Comprobando salud inicial de Primary, Replica y backend
+#1 [internal] load local bake definitions
+#1 reading from stdin 2.06kB done
+#1 DONE 0.0s
+
+#2 [backend internal] load build definition from Dockerfile
+#2 transferring dockerfile: 700B 0.0s done
+#2 DONE 0.1s
+
+#3 [postgres-replica internal] load build definition from Dockerfile
+#3 transferring dockerfile: 636B 0.0s done
+#3 DONE 0.1s
+
+#4 [postgres-primary internal] load metadata for docker.io/library/postgres:16-bookworm
+#4 DONE 0.1s
+
+#5 [postgres-primary internal] load .dockerignore
+#5 transferring context: 2B done
+#5 DONE 0.0s
+
+#6 [postgres-replica internal] load build context
+#6 DONE 0.0s
+
+#7 [postgres-primary 1/7] FROM docker.io/library/postgres:16-bookworm@sha256:64154d0babcb1741988719e703419af0382b19953706149f9872fbd0f438efa8
+#7 resolve docker.io/library/postgres:16-bookworm@sha256:64154d0babcb1741988719e703419af0382b19953706149f9872fbd0f438efa8 0.1s done
+#7 resolve docker.io/library/postgres:16-bookworm@sha256:64154d0babcb1741988719e703419af0382b19953706149f9872fbd0f438efa8 0.1s done
+#7 DONE 0.1s
+
+#6 [postgres-replica internal] load build context
+#6 transferring context: 5.61kB 0.0s done
+#6 DONE 0.0s
+
+#8 [postgres-replica 3/7] COPY docker/postgres/primary/init/ /docker-entrypoint-initdb.d/
+#8 CACHED
+
+#9 [postgres-replica 5/7] COPY docker/postgres/primary/pg_hba.conf /etc/postgresql/primary-pg_hba.conf
+#9 CACHED
+
+#10 [postgres-replica 2/7] RUN apt-get update     && apt-get install --no-install-recommends -y         postgresql-plpython3-16         python3-lxml     && rm -rf /var/lib/apt/lists/*
+#10 CACHED
+
+#11 [postgres-replica 4/7] COPY docker/postgres/primary/postgresql.conf /etc/postgresql/primary-postgresql.conf
+#11 CACHED
+
+#12 [postgres-replica 6/7] COPY docker/postgres/replica/entrypoint.sh /usr/local/bin/replica-entrypoint.sh
+#12 CACHED
+
+#13 [postgres-replica 7/7] RUN chmod +x /docker-entrypoint-initdb.d/*.sh /usr/local/bin/replica-entrypoint.sh
+#13 CACHED
+
+#14 [postgres-primary] exporting to image
+#14 exporting layers 0.0s done
+#14 exporting manifest sha256:1145564b2ea7df2539c7722e50c51adf3d3b4831377dd76d21b994c2c2359d6f done
+#14 exporting config sha256:944dbf8a4480f318262d2cb97bcee3ada7daff7f6b33fb3f013e72f16b137b58 0.0s done
+#14 exporting attestation manifest sha256:ace6bb430d6f8416be34a13209439e0790f3db5891874ba2ceecd49e7f4ad9db
+#14 exporting attestation manifest sha256:ace6bb430d6f8416be34a13209439e0790f3db5891874ba2ceecd49e7f4ad9db 0.1s done
+#14 exporting manifest list sha256:1e1eaa9a6bbc72ca17fa50945187133d9838de0c12947ebdf4d1201ac8eaa54d
+#14 exporting manifest list sha256:1e1eaa9a6bbc72ca17fa50945187133d9838de0c12947ebdf4d1201ac8eaa54d 0.1s done
+#14 naming to docker.io/library/globalhealth-final-36d75b2-postgres:local 0.0s done
+#14 unpacking to docker.io/library/globalhealth-final-36d75b2-postgres:local 0.0s done
+#14 DONE 0.4s
+
+#15 [postgres-replica] exporting to image
+#15 exporting layers 0.0s done
+#15 exporting manifest sha256:c191a558b4d59bb6f6fc3fe4aee9d1906ed11f92a1125d5efe4da87f4416c7e7 done
+#15 exporting config sha256:197c6519bd83ec9b1d6e5023e317e1a24860d3be962075ad80908d51394e8cbd 0.0s done
+#15 exporting attestation manifest sha256:38560fc86b329692f92edca20f4563976f50508aa9dbbcda7e23da4b04d1d786 0.1s done
+#15 exporting manifest list sha256:f2c7ab52882c22085240f518dda96704e5f3c126d54aae833b08cde143efc23b 0.1s done
+#15 naming to docker.io/library/globalhealth-final-36d75b2-postgres-replica:local 0.0s done
+#15 unpacking to docker.io/library/globalhealth-final-36d75b2-postgres-replica:local 0.0s done
+#15 DONE 0.4s
+
+#16 [backend internal] load metadata for docker.io/library/python:3.12-slim
+#16 ...
+
+#17 [postgres-primary] resolving provenance for metadata file
+#17 DONE 0.0s
+
+#18 [postgres-replica] resolving provenance for metadata file
+#18 DONE 0.0s
+
+#16 [backend internal] load metadata for docker.io/library/python:3.12-slim
+#16 DONE 3.4s
+
+#5 [backend internal] load .dockerignore
+#5 CACHED
+
+#19 [backend 1/8] FROM docker.io/library/python:3.12-slim@sha256:646fb0bca3dd3ea1bcc6feb72c17ed16eed6e10cffc732fcc1478bd3e7f02d7b
+#19 resolve docker.io/library/python:3.12-slim@sha256:646fb0bca3dd3ea1bcc6feb72c17ed16eed6e10cffc732fcc1478bd3e7f02d7b 0.0s done
+#19 DONE 0.0s
+
+#20 [backend internal] load build context
+#20 transferring context: 73.71kB 0.0s done
+#20 DONE 0.0s
+
+#21 [backend 4/8] COPY backend/requirements.txt .
+#21 CACHED
+
+#22 [backend 6/8] COPY backend/app ./app
+#22 CACHED
+
+#23 [backend 5/8] RUN pip install --no-cache-dir -r requirements.txt
+#23 CACHED
+
+#24 [backend 7/8] COPY scripts/wait-for-service.sh /usr/local/bin/wait-for-service.sh
+#24 CACHED
+
+#25 [backend 2/8] WORKDIR /app
+#25 CACHED
+
+#26 [backend 3/8] RUN apt-get update     && apt-get install --no-install-recommends -y netcat-openbsd     && rm -rf /var/lib/apt/lists/*
+#26 CACHED
+
+#27 [backend 8/8] RUN sed -i 's/\r$//' /usr/local/bin/wait-for-service.sh     && chmod +x /usr/local/bin/wait-for-service.sh
+#27 CACHED
+
+#28 [backend] exporting to image
+#28 exporting layers 0.0s done
+#28 exporting manifest sha256:e8658b548a658305805647fc856b6353847c19cf09a66d3c7e72ab05350273e5 0.0s done
+#28 exporting config sha256:4387487a458136d4a07c0d899def07a4d465f0112e6f8aee40e9ef7fa78ca20f 0.0s done
+#28 exporting attestation manifest sha256:61f327cb348410cae51c1635b18b69b3dcb1c0895d58f60f3fcacd35fb991af5
+#28 exporting attestation manifest sha256:61f327cb348410cae51c1635b18b69b3dcb1c0895d58f60f3fcacd35fb991af5 0.1s done
+#28 exporting manifest list sha256:c18e458b98216ebcd00cdfbf1e7eee83812445e96d392158b9f7400a010dab08 0.0s done
+#28 naming to docker.io/library/globalhealth-final-36d75b2-backend:latest done
+#28 unpacking to docker.io/library/globalhealth-final-36d75b2-backend:latest 0.0s done
+#28 DONE 0.3s
+
+#29 [backend] resolving provenance for metadata file
+#29 DONE 0.1s
+ globalhealth-final-36d75b2-postgres:local  Built
+ globalhealth-final-36d75b2-postgres-replica:local  Built
+ globalhealth-final-36d75b2-backend  Built
+ Container globalhealth-final-36d75b2-postgres-primary-1  Recreate
+ Container globalhealth-final-36d75b2-postgres-primary-1  Recreated
+ Container globalhealth-final-36d75b2-postgres-replica-1  Recreate
+ Container globalhealth-final-36d75b2-postgres-replica-1  Recreated
+ Container globalhealth-final-36d75b2-backend-1  Recreate
+ Container globalhealth-final-36d75b2-backend-1  Recreated
+ Container globalhealth-final-36d75b2-postgres-primary-1  Starting
+ Container globalhealth-final-36d75b2-postgres-primary-1  Started
+ Container globalhealth-final-36d75b2-postgres-primary-1  Waiting
+ Container globalhealth-final-36d75b2-postgres-primary-1  Healthy
+ Container globalhealth-final-36d75b2-postgres-replica-1  Starting
+ Container globalhealth-final-36d75b2-postgres-replica-1  Started
+ Container globalhealth-final-36d75b2-postgres-replica-1  Waiting
+ Container globalhealth-final-36d75b2-postgres-primary-1  Waiting
+ Container globalhealth-final-36d75b2-postgres-primary-1  Healthy
+ Container globalhealth-final-36d75b2-postgres-replica-1  Healthy
+ Container globalhealth-final-36d75b2-backend-1  Starting
+ Container globalhealth-final-36d75b2-backend-1  Started
+ Container globalhealth-final-36d75b2-postgres-replica-1  Waiting
+ Container globalhealth-final-36d75b2-backend-1  Waiting
+ Container globalhealth-final-36d75b2-postgres-primary-1  Waiting
+ Container globalhealth-final-36d75b2-postgres-primary-1  Healthy
+ Container globalhealth-final-36d75b2-postgres-replica-1  Healthy
+ Container globalhealth-final-36d75b2-backend-1  Healthy
+OK: Primary esta saludable y acepta escrituras
+OK: Replica esta saludable y permanece en recovery
+OK: health/databases responde HTTP 200
+==> Insertando dato en Primary
+NOTICE:  relation "chaos_replication_probe" already exists, skipping
+==> Esperando el dato en Replica
+OK: el dato insertado llego a Replica
+==> Deteniendo postgres-primary sin eliminar volumenes
+==> Consultando dashboard durante la caida de Primary
+OK: dashboard responde HTTP 200 desde Replica
+==> Intentando escritura HTTP con Primary detenido
+OK: la escritura responde HTTP 503
+==> Reiniciando postgres-primary
+==> Esperando que la replicacion vuelva a streaming
+OK: Primary reporta una conexion de replicacion streaming
+OK: Replica reporta WAL receiver streaming
+==> Escribiendo un dato nuevo después de recuperar Primary
+OK: la escritura posterior a la recuperación responde HTTP 201
+==> Confirmando el dato nuevo en Replica
+OK: el dato posterior a la recuperación llegó a Replica
+All replication chaos checks passed.
+result=PASS
+exit_code=0

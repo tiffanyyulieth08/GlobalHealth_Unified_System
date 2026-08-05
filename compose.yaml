@@ -52,7 +52,10 @@ services:
     restart: unless-stopped
 
   postgres-replica:
-    image: ${COMPOSE_PROJECT_NAME:-globalhealth}-postgres:local
+    build:
+      context: .
+      dockerfile: docker/postgres/Dockerfile
+    image: ${COMPOSE_PROJECT_NAME:-globalhealth}-postgres-replica:local
     depends_on:
       postgres-primary:
         condition: service_healthy
@@ -204,7 +207,7 @@ services:
     build:
       context: .
       dockerfile: docker/postgres/fragmentation/coordinator/Dockerfile
-    image: ${COMPOSE_PROJECT_NAME:-globalhealth}-fragmentation-coordinator:local
+    image: ${COMPOSE_PROJECT_NAME:-globalhealth}-fragmentation-coordinator-horizontal:local
     depends_on:
       fragment-north:
         condition: service_healthy
@@ -240,20 +243,14 @@ services:
       APP_NAME: ${APP_NAME:-GlobalHealth_Unified_System}
       APP_ENV: ${APP_ENV:-development}
       APP_DEBUG: ${APP_DEBUG:-true}
-      POSTGRES_HOST: postgres-primary
-      POSTGRES_PORT: 5432
-      POSTGRES_DB: ${POSTGRES_DB:-globalhealth}
-      POSTGRES_USER: ${POSTGRES_USER:-globalhealth}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
       POSTGRES_WRITE_URL: postgresql://${POSTGRES_USER:-globalhealth}:${POSTGRES_PASSWORD:-change-me}@postgres-primary:5432/${POSTGRES_DB:-globalhealth}
       POSTGRES_READ_URL: postgresql://${POSTGRES_USER:-globalhealth}:${POSTGRES_PASSWORD:-change-me}@postgres-replica:5432/${POSTGRES_DB:-globalhealth}
+      MONGODB_PROVIDER: ${MONGODB_PROVIDER:-local}
       MONGODB_URI: ${MONGODB_URI:-mongodb://mongodb:27017/globalhealth}
       MONGODB_DB: ${MONGODB_DB:-globalhealth}
     ports:
       - "${APP_PORT:-8000}:8000"
     depends_on:
-      mongodb:
-        condition: service_healthy
       postgres-primary:
         condition: service_healthy
       postgres-replica:

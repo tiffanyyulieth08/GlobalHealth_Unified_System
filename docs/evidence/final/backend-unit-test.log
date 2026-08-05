@@ -1,0 +1,19 @@
+timestamp=2026-08-05T14:27:57-06:00
+commit=36d75b21a2e63f32a53797bcee63d4c95fb84750
+branch=feature/atlas-security-final-release
+command=python -m unittest discover -s backend/tests -v (inside backend image)
+test_atlas_requires_srv_uri (test_config.SettingsTests.test_atlas_requires_srv_uri) ... ok
+test_atlas_settings_do_not_transform_uri (test_config.SettingsTests.test_atlas_settings_do_not_transform_uri) ... ok
+test_invalid_debug_value_is_rejected (test_config.SettingsTests.test_invalid_debug_value_is_rejected) ... ok
+test_connection_raises_after_three_failures (test_mongodb.MongoConnectionTests.test_connection_raises_after_three_failures) ... ok
+test_connection_retries_after_transient_ping_failure (test_mongodb.MongoConnectionTests.test_connection_retries_after_transient_ping_failure) ... ok
+test_health_is_sanitized (test_telemetry.TelemetryTests.test_health_is_sanitized) ... ok
+test_summary_contains_group_lookup_and_limit (test_telemetry.TelemetryTests.test_summary_contains_group_lookup_and_limit) ... ok
+test_summary_rejects_inverted_date_range (test_telemetry.TelemetryTests.test_summary_rejects_inverted_date_range) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.005s
+
+OK
+result=PASS
+exit_code=0

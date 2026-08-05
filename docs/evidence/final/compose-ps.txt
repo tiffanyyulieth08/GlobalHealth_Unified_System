@@ -1,0 +1,16 @@
+timestamp=2026-08-05T14:34:33-06:00
+commit=36d75b21a2e63f32a53797bcee63d4c95fb84750
+branch=feature/atlas-security-final-release
+result=PASS
+command=docker compose -p globalhealth-final-36d75b2 ps
+NAME                                                                IMAGE                                                                   COMMAND                  SERVICE                                CREATED              STATUS                        PORTS
+globalhealth-final-36d75b2-backend-1                                globalhealth-final-36d75b2-backend                                      "wait-for-service.sh…"   backend                                About a minute ago   Up About a minute (healthy)   0.0.0.0:18082->8000/tcp, [::]:18082->8000/tcp
+globalhealth-final-36d75b2-fragment-financial-1                     postgres:16-bookworm                                                    "docker-entrypoint.s…"   fragment-financial                     3 hours ago          Up 3 hours (healthy)          
+globalhealth-final-36d75b2-fragment-north-1                         postgres:16-bookworm                                                    "docker-entrypoint.s…"   fragment-north                         3 hours ago          Up 3 hours (healthy)          
+globalhealth-final-36d75b2-fragment-public-1                        postgres:16-bookworm                                                    "docker-entrypoint.s…"   fragment-public                        3 hours ago          Up 3 hours (healthy)          
+globalhealth-final-36d75b2-fragment-south-1                         postgres:16-bookworm                                                    "docker-entrypoint.s…"   fragment-south                         3 hours ago          Up 3 hours (healthy)          
+globalhealth-final-36d75b2-fragmentation-coordinator-1              globalhealth-final-36d75b2-fragmentation-coordinator:local              "docker-entrypoint.s…"   fragmentation-coordinator              3 hours ago          Up 3 hours (healthy)          
+globalhealth-final-36d75b2-fragmentation-coordinator-horizontal-1   globalhealth-final-36d75b2-fragmentation-coordinator-horizontal:local   "docker-entrypoint.s…"   fragmentation-coordinator-horizontal   3 hours ago          Up 3 hours (healthy)          
+globalhealth-final-36d75b2-mongodb-1                                mongo:8.0                                                               "docker-entrypoint.s…"   mongodb                                3 hours ago          Up 3 hours (healthy)          
+globalhealth-final-36d75b2-postgres-primary-1                       globalhealth-final-36d75b2-postgres:local                               "docker-entrypoint.s…"   postgres-primary                       About a minute ago   Up 58 seconds (healthy)       
+globalhealth-final-36d75b2-postgres-replica-1                       globalhealth-final-36d75b2-postgres-replica:local                       "replica-entrypoint.…"   postgres-replica                       About a minute ago   Up About a minute (healthy)   
