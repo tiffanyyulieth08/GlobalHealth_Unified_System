@@ -243,6 +243,7 @@ services:
       APP_NAME: ${APP_NAME:-GlobalHealth_Unified_System}
       APP_ENV: ${APP_ENV:-development}
       APP_DEBUG: ${APP_DEBUG:-true}
+      FRONTEND_ORIGINS: ${FRONTEND_ORIGINS:-http://localhost:5173,http://localhost:3000}
       POSTGRES_WRITE_URL: postgresql://${POSTGRES_USER:-globalhealth}:${POSTGRES_PASSWORD:-change-me}@postgres-primary:5432/${POSTGRES_DB:-globalhealth}
       POSTGRES_READ_URL: postgresql://${POSTGRES_USER:-globalhealth}:${POSTGRES_PASSWORD:-change-me}@postgres-replica:5432/${POSTGRES_DB:-globalhealth}
       MONGODB_PROVIDER: ${MONGODB_PROVIDER:-local}
