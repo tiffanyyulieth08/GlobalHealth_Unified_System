@@ -6,6 +6,7 @@ from typing import AsyncIterator
 
 import asyncpg
 from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pymongo.errors import PyMongoError
 
@@ -49,6 +50,14 @@ app = FastAPI(
 )
 app.include_router(telemetry_router)
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.frontend_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 @app.exception_handler(PyMongoError)
 async def mongodb_error_handler(
@@ -71,6 +80,18 @@ async def postgres_error_handler(
     return JSONResponse(
         {"detail": "PostgreSQL operation failed"},
         status_code=503,
+    )
+
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(
+    request: Request,
+    exception: Exception,
+) -> JSONResponse:
+    logger.exception("Unhandled error while processing %s", request.url.path)
+    return JSONResponse(
+        {"detail": "Internal server error"},
+        status_code=500,
     )
 
 

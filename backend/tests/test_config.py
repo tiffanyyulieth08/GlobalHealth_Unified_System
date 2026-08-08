@@ -40,3 +40,32 @@ class SettingsTests(unittest.TestCase):
         with patch.dict(os.environ, {"APP_DEBUG": "sometimes"}, clear=False):
             with self.assertRaisesRegex(ValueError, "APP_DEBUG"):
                 get_settings()
+
+    def test_frontend_origins_default_when_unset(self) -> None:
+        with patch.dict(os.environ, {}, clear=True):
+            settings = get_settings()
+        self.assertEqual(
+            settings.frontend_origins,
+            ["http://localhost:5173", "http://localhost:3000"],
+        )
+
+    def test_frontend_origins_parses_custom_list(self) -> None:
+        with patch.dict(
+            os.environ,
+            {"FRONTEND_ORIGINS": "https://app.example.com, http://localhost:5173 "},
+            clear=False,
+        ):
+            settings = get_settings()
+        self.assertEqual(
+            settings.frontend_origins,
+            ["https://app.example.com", "http://localhost:5173"],
+        )
+
+    def test_frontend_origins_rejects_wildcard_in_production(self) -> None:
+        with patch.dict(
+            os.environ,
+            {"APP_ENV": "production", "FRONTEND_ORIGINS": "*"},
+            clear=False,
+        ):
+            with self.assertRaisesRegex(ValueError, "FRONTEND_ORIGINS"):
+                get_settings()
