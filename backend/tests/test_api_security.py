@@ -114,29 +114,30 @@ class ErrorSanitizationTests(unittest.TestCase):
         return Request(asgi_scope("/api/patients"))
 
     def test_unhandled_error_is_sanitized(self) -> None:
+        uri = (
+            "postgresql://user:change-me@primary:5432/db "
+            "mongodb+srv://user:change-me@atlas.invalid/db"
+        )
         response = asyncio.run(
             app_main.unhandled_exception_handler(
                 self.request(),
-                RuntimeError(
-                    "boom postgresql://user:secret@primary:5432/db "
-                    "mongodb+srv://user:secret@atlas.invalid/db"
-                ),
+                RuntimeError(f"boom {uri}"),
             )
         )
         self.assertEqual(response.status_code, 500)
         body = response.body.decode()
         self.assertIn("Internal server error", body)
-        for leaked in ("postgresql", "mongodb", "secret", "atlas", "Traceback"):
+        for leaked in (uri, "change-me", "Traceback"):
             self.assertNotIn(leaked, body)
 
     def test_mongodb_error_does_not_leak_uri(self) -> None:
-        uri = "mongodb+srv://user:secret@atlas.invalid/db"
+        uri = "mongodb+srv://user:change-me@atlas.invalid/db"
         response = asyncio.run(
             app_main.mongodb_error_handler(self.request(), PyMongoError(uri))
         )
         self.assertEqual(response.status_code, 503)
         self.assertNotIn(uri, response.body.decode())
-        self.assertNotIn("secret", response.body.decode())
+        self.assertNotIn("change-me", response.body.decode())
 
     def test_postgres_error_is_generic(self) -> None:
         response = asyncio.run(
