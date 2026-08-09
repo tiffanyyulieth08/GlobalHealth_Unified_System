@@ -1,39 +1,42 @@
 #1 [internal] load local bake definitions
-#1 reading from stdin 847B 0.0s done
-#1 DONE 0.0s
+#1 reading from stdin 833B 0.1s done
+#1 DONE 0.1s
 
 #2 [internal] load build definition from Dockerfile
-#2 transferring dockerfile: 212B 0.0s done
+#2 transferring dockerfile: 212B 0.1s done
 #2 DONE 0.1s
 
 #3 [internal] load metadata for docker.io/library/postgres:16-bookworm
-#3 DONE 0.1s
+#3 DONE 0.2s
 
 #4 [internal] load .dockerignore
-#4 transferring context: 2B done
-#4 DONE 0.0s
+#4 transferring context: 0.0s
+#4 transferring context: 2B 0.1s done
+#4 DONE 0.2s
 
 #5 [1/2] FROM docker.io/library/postgres:16-bookworm@sha256:92620daddcd947f8d5ab5ba66e848702fe443d87fed30c4cea8e389fd78dfc55
-#5 resolve docker.io/library/postgres:16-bookworm@sha256:92620daddcd947f8d5ab5ba66e848702fe443d87fed30c4cea8e389fd78dfc55 0.1s done
-#5 DONE 0.1s
+#5 resolve docker.io/library/postgres:16-bookworm@sha256:92620daddcd947f8d5ab5ba66e848702fe443d87fed30c4cea8e389fd78dfc55
+#5 resolve docker.io/library/postgres:16-bookworm@sha256:92620daddcd947f8d5ab5ba66e848702fe443d87fed30c4cea8e389fd78dfc55 0.3s done
+#5 DONE 0.3s
 
 #6 [2/2] RUN apt-get update     && apt-get install --no-install-recommends -y         postgresql-contrib-16     && rm -rf /var/lib/apt/lists/*
 #6 CACHED
 
 #7 exporting to image
-#7 exporting layers 0.0s done
-#7 exporting manifest sha256:94c59732bd596037b84b3147d3c2cfc0ed9bf5937c9249038005f84abd5426c2 0.0s done
-#7 exporting config sha256:99e397ae5763608241224b63a848edf1130173c98bbbdf8d868e3daa5fcd17c4 0.1s done
-#7 exporting attestation manifest sha256:2fc88bcfd0be910f5917f688b3a0ff518a0d1725d9bc2aeb1cfcb76e44f37c50
-#7 exporting attestation manifest sha256:2fc88bcfd0be910f5917f688b3a0ff518a0d1725d9bc2aeb1cfcb76e44f37c50 0.2s done
-#7 exporting manifest list sha256:d350ad558003214e4cf60c3c5e521e088347534b4046f9dfff8b6af10a89c03a
-#7 exporting manifest list sha256:d350ad558003214e4cf60c3c5e521e088347534b4046f9dfff8b6af10a89c03a 0.1s done
-#7 naming to docker.io/library/globalhealth-finalverify-integration-fragmentation-coordinator:local 0.0s done
-#7 unpacking to docker.io/library/globalhealth-finalverify-integration-fragmentation-coordinator:local 0.1s done
-#7 DONE 0.7s
+#7 exporting layers 0.1s done
+#7 exporting manifest sha256:15c6f1964c0c81735a2913ceb53a1bd1937c46adad97d2291a75b91135ba07de 0.0s done
+#7 exporting config sha256:3436794d145fd5479f2f549929aedc083a71544289b6a5f4bf6a69aa0bdefd69 0.0s done
+#7 exporting attestation manifest sha256:b4cd5e84ee5be20ebabcbc1d27fbe9ebdc6d8256f49853273c20c5fb927857cb
+#7 exporting attestation manifest sha256:b4cd5e84ee5be20ebabcbc1d27fbe9ebdc6d8256f49853273c20c5fb927857cb 0.3s done
+#7 exporting manifest list sha256:98b44be5da925a52fe3101e3e95c0cf3101b7292a32ff29345e0fbaf345b747d
+#7 exporting manifest list sha256:98b44be5da925a52fe3101e3e95c0cf3101b7292a32ff29345e0fbaf345b747d 0.2s done
+#7 naming to docker.io/library/globalhealth-test-integration-fragmentation-coordinator:local
+#7 naming to docker.io/library/globalhealth-test-integration-fragmentation-coordinator:local 0.0s done
+#7 unpacking to docker.io/library/globalhealth-test-integration-fragmentation-coordinator:local 0.1s done
+#7 DONE 1.2s
 
 #8 resolving provenance for metadata file
-#8 DONE 0.1s
+#8 DONE 0.3s
 ==> Datos en los fragmentos (mismos patient_id en ambos)
 OK: fragment-public contiene 6 registros -> 6
 OK: fragment-financial contiene 6 registros -> 6
