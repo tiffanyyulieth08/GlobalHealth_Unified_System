@@ -1,5 +1,5 @@
 #1 [internal] load local bake definitions
-#1 reading from stdin 869B done
+#1 reading from stdin 877B 0.0s done
 #1 DONE 0.0s
 
 #2 [internal] load build definition from Dockerfile
@@ -10,27 +10,27 @@
 #3 DONE 0.1s
 
 #4 [internal] load .dockerignore
-#4 transferring context: 2B 0.1s done
+#4 transferring context: 2B 0.0s done
 #4 DONE 0.1s
 
-#5 [1/2] FROM docker.io/library/postgres:16-bookworm@sha256:64154d0babcb1741988719e703419af0382b19953706149f9872fbd0f438efa8
-#5 resolve docker.io/library/postgres:16-bookworm@sha256:64154d0babcb1741988719e703419af0382b19953706149f9872fbd0f438efa8 0.1s done
-#5 DONE 0.1s
+#5 [1/2] FROM docker.io/library/postgres:16-bookworm@sha256:92620daddcd947f8d5ab5ba66e848702fe443d87fed30c4cea8e389fd78dfc55
+#5 resolve docker.io/library/postgres:16-bookworm@sha256:92620daddcd947f8d5ab5ba66e848702fe443d87fed30c4cea8e389fd78dfc55 0.1s done
+#5 DONE 0.2s
 
 #6 [2/2] RUN apt-get update     && apt-get install --no-install-recommends -y         postgresql-contrib-16     && rm -rf /var/lib/apt/lists/*
 #6 CACHED
 
 #7 exporting to image
 #7 exporting layers 0.0s done
-#7 exporting manifest sha256:29d4dd7d1e3632d6d0f9b70d618009ee9cdf45114622916590839da3f6b0bf32
-#7 exporting manifest sha256:29d4dd7d1e3632d6d0f9b70d618009ee9cdf45114622916590839da3f6b0bf32 done
-#7 exporting config sha256:0cc0d961cdd592d09f8226e058f6622b52a0344c9f10ee69b077bc3525e283c7 done
-#7 exporting attestation manifest sha256:833c2b2470eb30b5e1db5de217e2aa5500fe0d0bee15bfb82af86fd7ce25b0b7 0.1s done
-#7 exporting manifest list sha256:02db746f83241b3bd93d3b1ec1a631859987079ab9d4b75053e33e88e316fd86
-#7 exporting manifest list sha256:02db746f83241b3bd93d3b1ec1a631859987079ab9d4b75053e33e88e316fd86 0.0s done
-#7 naming to docker.io/library/globalhealth-test-integration-fragmentation-coordinator-horizontal:local done
-#7 unpacking to docker.io/library/globalhealth-test-integration-fragmentation-coordinator-horizontal:local 0.0s done
-#7 DONE 0.3s
+#7 exporting manifest sha256:a708c0a6b0aad28b4c9cc9fc4f9e74c8c84a912a2192032a98a8014b7863f8ae 0.0s done
+#7 exporting config sha256:efe371d74229dd031cea61c55c250a1938f653ce157ac55e417aae988bf87c4b 0.0s done
+#7 exporting attestation manifest sha256:227d1d9471b086d5e9c5075e8b34eaa00480b57b8520a6e31e14b3c469931d68 0.2s done
+#7 exporting manifest list sha256:057508a7bd1185dc85704b55bfe070c09b1cfe6959b11c0e938217e0fc261711
+#7 exporting manifest list sha256:057508a7bd1185dc85704b55bfe070c09b1cfe6959b11c0e938217e0fc261711 0.1s done
+#7 naming to docker.io/library/globalhealth-test-integration-fragmentation-coordinator-horizontal:local 0.0s done
+#7 unpacking to docker.io/library/globalhealth-test-integration-fragmentation-coordinator-horizontal:local
+#7 unpacking to docker.io/library/globalhealth-test-integration-fragmentation-coordinator-horizontal:local 0.1s done
+#7 DONE 0.7s
 
 #8 resolving provenance for metadata file
 #8 DONE 0.0s

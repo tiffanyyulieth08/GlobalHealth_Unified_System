@@ -4,8 +4,16 @@ from datetime import UTC, datetime
 from unittest.mock import patch
 
 from fastapi import HTTPException
+from pymongo import DESCENDING
 
-from app.routers.telemetry import mongodb_health, telemetry_summary
+from app.routers.telemetry import (
+    PatientUpdate,
+    get_patient,
+    list_sessions,
+    mongodb_health,
+    telemetry_summary,
+    update_patient,
+)
 
 
 class FakeAdmin:
@@ -18,9 +26,31 @@ class FakeClient:
     admin = FakeAdmin()
 
 
+class FakeCursor:
+    def __init__(self, documents: list[dict], collection) -> None:
+        self._documents = documents
+        self._collection = collection
+
+    def sort(self, key, direction):
+        self._collection.sort_key = (key, direction)
+        return self
+
+    def limit(self, value):
+        self._collection.limit_value = value
+        return self
+
+    def __iter__(self):
+        return iter(self._documents)
+
+
 class FakeCollection:
-    def __init__(self) -> None:
+    def __init__(self, documents: list[dict] | None = None) -> None:
         self.pipeline = None
+        self._documents = documents or []
+        self.filters = None
+        self.update = None
+        self.sort_key = None
+        self.limit_value = None
 
     def aggregate(self, pipeline):
         self.pipeline = pipeline
@@ -32,6 +62,23 @@ class FakeCollection:
             }
         ]
 
+    def find(self, filters, projection=None):
+        self.filters = filters
+        return FakeCursor(self._documents, self)
+
+    def find_one(self, filters, projection=None):
+        self.filters = filters
+        if self._documents:
+            return dict(self._documents[0])
+        return None
+
+    def find_one_and_update(self, filters, update, return_document=None, projection=None):
+        self.filters = filters
+        self.update = update
+        if not self._documents:
+            return None
+        return {**dict(self._documents[0]), **update["$set"]}
+
 
 class FakeDatabase:
     name = "globalhealth_test"
@@ -39,6 +86,26 @@ class FakeDatabase:
 
     def __init__(self) -> None:
         self.sensor_logs = FakeCollection()
+        self.patients = FakeCollection(
+            [
+                {
+                    "patientId": "P001",
+                    "firstName": "Ana",
+                    "lastName": "Solis",
+                    "active": True,
+                }
+            ]
+        )
+        self.sessions = FakeCollection(
+            [
+                {
+                    "sessionId": "S001",
+                    "patientId": "P001",
+                    "deviceId": "ECG-CR-001",
+                    "status": "active",
+                }
+            ]
+        )
 
     def command(self, command: str) -> None:
         self.client.admin.command(command)
@@ -88,3 +155,69 @@ class TelemetryTests(unittest.TestCase):
                 limit=50,
             )
         self.assertEqual(raised.exception.status_code, 422)
+
+
+class PatientEndpointTests(unittest.TestCase):
+    def test_get_patient_returns_document(self) -> None:
+        database = FakeDatabase()
+        result = get_patient("P001", database)
+        self.assertEqual(database.patients.filters, {"patientId": "P001"})
+        self.assertEqual(result["patientId"], "P001")
+        self.assertNotIn("_id", result)
+
+    def test_get_patient_raises_when_missing(self) -> None:
+        database = FakeDatabase()
+        database.patients._documents = []
+        with self.assertRaises(HTTPException) as raised:
+            get_patient("MISSING", database)
+        self.assertEqual(raised.exception.status_code, 404)
+
+    def test_update_patient_sets_only_provided_fields(self) -> None:
+        database = FakeDatabase()
+        result = update_patient("P001", PatientUpdate(first_name="Renamed"), database)
+        self.assertEqual(database.patients.filters, {"patientId": "P001"})
+        self.assertEqual(database.patients.update["$set"]["firstName"], "Renamed")
+        self.assertEqual(result["firstName"], "Renamed")
+        self.assertIn("updatedAt", database.patients.update["$set"])
+        self.assertNotIn("lastName", database.patients.update["$set"])
+
+    def test_update_patient_raises_when_missing(self) -> None:
+        database = FakeDatabase()
+        database.patients._documents = []
+        with self.assertRaises(HTTPException) as raised:
+            update_patient("MISSING", PatientUpdate(first_name="Renamed"), database)
+        self.assertEqual(raised.exception.status_code, 404)
+
+    def test_update_patient_rejects_empty_payload(self) -> None:
+        database = FakeDatabase()
+        with self.assertRaises(HTTPException) as raised:
+            update_patient("P001", PatientUpdate(), database)
+        self.assertEqual(raised.exception.status_code, 422)
+
+
+class SessionEndpointTests(unittest.TestCase):
+    def test_list_sessions_filters_by_patient_with_limit_and_order(self) -> None:
+        database = FakeDatabase()
+        result = list_sessions(
+            database,
+            patient_id="P001",
+            session_status=None,
+            limit=5,
+        )
+        self.assertEqual(database.sessions.filters, {"patientId": "P001"})
+        self.assertEqual(database.sessions.sort_key, ("startedAt", DESCENDING))
+        self.assertEqual(database.sessions.limit_value, 5)
+        self.assertEqual(result[0]["sessionId"], "S001")
+
+    def test_list_sessions_filters_by_patient_and_status(self) -> None:
+        database = FakeDatabase()
+        list_sessions(
+            database,
+            patient_id="P001",
+            session_status="active",
+            limit=20,
+        )
+        self.assertEqual(
+            database.sessions.filters,
+            {"patientId": "P001", "status": "active"},
+        )
