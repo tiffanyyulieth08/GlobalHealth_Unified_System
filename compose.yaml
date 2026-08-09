@@ -246,6 +246,8 @@ services:
       FRONTEND_ORIGINS: ${FRONTEND_ORIGINS:-http://localhost:5173,http://localhost:3000}
       POSTGRES_WRITE_URL: postgresql://${POSTGRES_USER:-globalhealth}:${POSTGRES_PASSWORD:-change-me}@postgres-primary:5432/${POSTGRES_DB:-globalhealth}
       POSTGRES_READ_URL: postgresql://${POSTGRES_USER:-globalhealth}:${POSTGRES_PASSWORD:-change-me}@postgres-replica:5432/${POSTGRES_DB:-globalhealth}
+      POSTGRES_HORIZONTAL_COORDINATOR_URL: postgresql://${POSTGRES_USER:-globalhealth}:${POSTGRES_PASSWORD:-change-me}@fragmentation-coordinator-horizontal:5432/${FRAGMENT_HORIZONTAL_COORDINATOR_DB:-globalhealth_horizontal}
+      POSTGRES_VERTICAL_COORDINATOR_URL: postgresql://${POSTGRES_USER:-globalhealth}:${POSTGRES_PASSWORD:-change-me}@fragmentation-coordinator:5432/${FRAGMENT_COORDINATOR_DB:-globalhealth}
       MONGODB_PROVIDER: ${MONGODB_PROVIDER:-local}
       MONGODB_URI: ${MONGODB_URI:-mongodb://mongodb:27017/globalhealth}
       MONGODB_DB: ${MONGODB_DB:-globalhealth}
@@ -255,6 +257,10 @@ services:
       postgres-primary:
         condition: service_healthy
       postgres-replica:
+        condition: service_healthy
+      fragmentation-coordinator:
+        condition: service_healthy
+      fragmentation-coordinator-horizontal:
         condition: service_healthy
     healthcheck:
       test:
