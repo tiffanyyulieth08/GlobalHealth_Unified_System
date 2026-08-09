@@ -12,6 +12,9 @@ from pymongo.errors import PyMongoError
 
 from app.config import get_settings
 from app.mongodb import close_mongodb, connect_mongodb
+from app.routers.fragmentation import router as fragmentation_router
+from app.routers.infrastructure import database_probe
+from app.routers.infrastructure import router as infrastructure_router
 from app.routers.mor import router as mor_router
 from app.routers.telemetry import router as telemetry_router
 from app.routers.xml import router as xml_router
@@ -22,6 +25,8 @@ settings = get_settings()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+    horizontal_pool: asyncpg.Pool | None = None
+    vertical_pool: asyncpg.Pool | None = None
     app.state.write_pool = await asyncpg.create_pool(
         os.environ["POSTGRES_WRITE_URL"],
         min_size=1,
@@ -37,10 +42,28 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         await app.state.write_pool.close()
         raise
     try:
+        horizontal_pool = await asyncpg.create_pool(
+            os.environ["POSTGRES_HORIZONTAL_COORDINATOR_URL"],
+            min_size=1,
+            max_size=5,
+            server_settings={"default_transaction_read_only": "on"},
+        )
+        vertical_pool = await asyncpg.create_pool(
+            os.environ["POSTGRES_VERTICAL_COORDINATOR_URL"],
+            min_size=1,
+            max_size=5,
+            server_settings={"default_transaction_read_only": "on"},
+        )
+        app.state.horizontal_fragmentation_pool = horizontal_pool
+        app.state.vertical_fragmentation_pool = vertical_pool
         connect_mongodb()
         yield
     finally:
         close_mongodb()
+        if vertical_pool is not None:
+            await vertical_pool.close()
+        if horizontal_pool is not None:
+            await horizontal_pool.close()
         await app.state.read_pool.close()
         await app.state.write_pool.close()
 
@@ -53,6 +76,8 @@ app = FastAPI(
 app.include_router(telemetry_router)
 app.include_router(mor_router)
 app.include_router(xml_router)
+app.include_router(fragmentation_router)
+app.include_router(infrastructure_router)
 
 app.add_middleware(
     CORSMiddleware,
@@ -104,25 +129,6 @@ def health() -> dict[str, str]:
     return {"status": "healthy"}
 
 
-async def database_probe(
-    pool: asyncpg.Pool,
-    expected_recovery: bool,
-) -> dict[str, bool | str | None]:
-    try:
-        in_recovery = await pool.fetchval("SELECT pg_is_in_recovery()")
-    except Exception:
-        logger.warning("database probe failed")
-        return {
-            "status": "unhealthy",
-            "in_recovery": None,
-            "error": "database connection unavailable",
-        }
-    return {
-        "status": "healthy" if in_recovery == expected_recovery else "unhealthy",
-        "in_recovery": in_recovery,
-    }
-
-
 @app.get("/health/databases")
 async def health_databases(request: Request) -> JSONResponse:
     primary, replica = await asyncio.gather(
@@ -130,6 +136,8 @@ async def health_databases(request: Request) -> JSONResponse:
         database_probe(request.app.state.read_pool, True),
     )
     healthy = primary["status"] == "healthy" and replica["status"] == "healthy"
+    primary["in_recovery"] = primary.pop("inRecovery")
+    replica["in_recovery"] = replica.pop("inRecovery")
     return JSONResponse(
         {
             "status": "healthy" if healthy else "unhealthy",
