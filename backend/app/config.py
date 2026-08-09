@@ -50,7 +50,7 @@ def get_settings() -> Settings:
     if not database or any(character in database for character in '/\\" .$*<>:|?'):
         raise ValueError("MONGODB_DB is invalid")
 
-    default_origins = "http://localhost:5173,http://localhost:3000"
+    default_origins = "http://localhost:3000"
     frontend_origins = parse_origins("FRONTEND_ORIGINS", default_origins)
     if app_env == "production" and "*" in frontend_origins:
         raise ValueError("FRONTEND_ORIGINS must not contain '*' in production")

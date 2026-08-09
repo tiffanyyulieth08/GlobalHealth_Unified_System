@@ -1,0 +1,65 @@
+#1 [internal] load local bake definitions
+#1 reading from stdin 827B done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile
+#2 transferring dockerfile: 212B 0.0s done
+#2 DONE 0.0s
+
+#3 [internal] load metadata for docker.io/library/postgres:16-bookworm
+#3 DONE 0.1s
+
+#4 [internal] load .dockerignore
+#4 transferring context: 2B 0.1s done
+#4 DONE 0.1s
+
+#5 [1/2] FROM docker.io/library/postgres:16-bookworm@sha256:64154d0babcb1741988719e703419af0382b19953706149f9872fbd0f438efa8
+#5 resolve docker.io/library/postgres:16-bookworm@sha256:64154d0babcb1741988719e703419af0382b19953706149f9872fbd0f438efa8 0.1s done
+#5 DONE 0.1s
+
+#6 [2/2] RUN apt-get update     && apt-get install --no-install-recommends -y         postgresql-contrib-16     && rm -rf /var/lib/apt/lists/*
+#6 CACHED
+
+#7 exporting to image
+#7 exporting layers 0.0s done
+#7 exporting manifest sha256:2ac46d170906d0d663b12b6c7e8a430780a2a00bb14fb39a5e20abe3394fe44f done
+#7 exporting config sha256:cc6bcb07279954b179c377859477cbc5552d123fb010c1c427490f57e7b1ac33 done
+#7 exporting attestation manifest sha256:d0505edda2e99c0ac8dad2700cc972c64f36bffd6c367304b9f414b0693de0c8 0.1s done
+#7 exporting manifest list sha256:e53c76dd3e321fb1152951ea1025fee306d547675bf2982e8db1bfd0bb2534d1
+#7 exporting manifest list sha256:e53c76dd3e321fb1152951ea1025fee306d547675bf2982e8db1bfd0bb2534d1 0.0s done
+#7 naming to docker.io/library/globalhealth-final-integration-fragmentation-coordinator:local done
+#7 unpacking to docker.io/library/globalhealth-final-integration-fragmentation-coordinator:local 0.0s done
+#7 DONE 0.3s
+
+#8 resolving provenance for metadata file
+#8 DONE 0.0s
+==> Datos en los fragmentos (mismos patient_id en ambos)
+OK: fragment-public contiene 6 registros -> 6
+OK: fragment-financial contiene 6 registros -> 6
+==> Roles de fragmento
+OK: public_role lee datos publicos -> 6
+OK: financial_role lee datos financieros -> 6
+OK: public_role no puede leer datos financieros en fragment-financial
+==> Coordinador con postgres_fdw
+OK: coordinador lee tabla remota publica -> 6
+OK: coordinador lee tabla remota financiera -> 6
+==> Conjuntos de llaves identicos en estado normal
+OK: EXCEPT publico menos financiero vacio -> 
+OK: EXCEPT financiero menos publico vacio -> 
+OK: cantidad de llaves publicas igual a financieras -> 0
+OK: sin huerfanos publicos en el estado normal -> 0
+OK: sin huerfanos financieros en el estado normal -> 0
+==> Reconstruccion completa del paciente
+OK: patients_full reconstruye 6 pacientes completos -> 6
+OK: reconstruccion sin columnas faltantes -> 0
+OK: paciente 2 reconstruido con datos publicos y financieros -> Luis Ramirez:VidaPlus:250.75
+==> Huerfanos como pruebas negativas temporales (ROLLBACK)
+OK: huerfano publico detectado y revertido (ROLLBACK)
+OK: huerfano financiero detectado y revertido (ROLLBACK)
+OK: sin rastros de huerfano publico tras ROLLBACK -> 0
+OK: sin rastros de huerfano financiero tras ROLLBACK -> 0
+OK: reconstruccion intacta tras las negativas -> 6
+==> Restriccion del rol publico en el coordinador
+OK: public_role en coordinador lee datos publicos -> 6
+OK: public_role no puede leer informacion financiera desde el coordinador
+All fragmentation vertical tests passed.

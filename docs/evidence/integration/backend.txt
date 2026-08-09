@@ -1,12 +1,14 @@
-backend-1  | Connection to postgres-primary (172.20.0.7) 5432 port [tcp/postgresql] succeeded!
+backend-1  | Connection to postgres-primary (172.27.0.5) 5432 port [tcp/postgresql] succeeded!
 backend-1  | INFO:     Started server process [1]
 backend-1  | INFO:     Waiting for application startup.
 backend-1  | INFO:     Application startup complete.
 backend-1  | INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
-backend-1  | INFO:     127.0.0.1:49420 - "GET /health/databases HTTP/1.1" 200 OK
-backend-1  | INFO:     127.0.0.1:56704 - "GET /health/databases HTTP/1.1" 200 OK
-backend-1  | INFO:     127.0.0.1:55054 - "GET /health/databases HTTP/1.1" 200 OK
-backend-1  | INFO:     127.0.0.1:48110 - "GET /health/databases HTTP/1.1" 200 OK
+backend-1  | INFO:     127.0.0.1:55432 - "GET /health/databases HTTP/1.1" 200 OK
+backend-1  | INFO:     172.28.0.1:42140 - "GET /health HTTP/1.1" 200 OK
+backend-1  | INFO:     172.28.0.1:42154 - "GET /health/databases HTTP/1.1" 200 OK
+backend-1  | INFO:     172.28.0.1:42156 - "GET /health HTTP/1.1" 200 OK
+backend-1  | INFO:     172.28.0.1:42158 - "GET /health HTTP/1.1" 200 OK
+backend-1  | INFO:     127.0.0.1:39274 - "GET /health/databases HTTP/1.1" 200 OK
 backend-1  | /usr/local/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:2274: UnsupportedFieldAttributeWarning: The 'alias' attribute with value 'patientId' was provided to the `Field()` function, which has no effect in the context it was used. 'alias' is field-specific metadata, and can only be attached to a model field using `Annotated` metadata or by assignment. This may have happened because an `Annotated` type alias using the `type` statement was used, or if the `Field()` function was attached to a single member of a union type.
 backend-1  |   warnings.warn(
 backend-1  | /usr/local/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:2274: UnsupportedFieldAttributeWarning: The 'alias' attribute with value 'firstName' was provided to the `Field()` function, which has no effect in the context it was used. 'alias' is field-specific metadata, and can only be attached to a model field using `Annotated` metadata or by assignment. This may have happened because an `Annotated` type alias using the `type` statement was used, or if the `Field()` function was attached to a single member of a union type.
@@ -15,7 +17,7 @@ backend-1  | /usr/local/lib/python3.12/site-packages/pydantic/_internal/_generat
 backend-1  |   warnings.warn(
 backend-1  | /usr/local/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:2274: UnsupportedFieldAttributeWarning: The 'alias' attribute with value 'dateOfBirth' was provided to the `Field()` function, which has no effect in the context it was used. 'alias' is field-specific metadata, and can only be attached to a model field using `Annotated` metadata or by assignment. This may have happened because an `Annotated` type alias using the `type` statement was used, or if the `Field()` function was attached to a single member of a union type.
 backend-1  |   warnings.warn(
-backend-1  | INFO:     172.21.0.1:47388 - "POST /api/patients HTTP/1.1" 201 Created
+backend-1  | INFO:     172.28.0.1:42166 - "POST /api/patients HTTP/1.1" 201 Created
 backend-1  | /usr/local/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:2274: UnsupportedFieldAttributeWarning: The 'alias' attribute with value 'sessionId' was provided to the `Field()` function, which has no effect in the context it was used. 'alias' is field-specific metadata, and can only be attached to a model field using `Annotated` metadata or by assignment. This may have happened because an `Annotated` type alias using the `type` statement was used, or if the `Field()` function was attached to a single member of a union type.
 backend-1  |   warnings.warn(
 backend-1  | /usr/local/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:2274: UnsupportedFieldAttributeWarning: The 'alias' attribute with value 'deviceId' was provided to the `Field()` function, which has no effect in the context it was used. 'alias' is field-specific metadata, and can only be attached to a model field using `Annotated` metadata or by assignment. This may have happened because an `Annotated` type alias using the `type` statement was used, or if the `Field()` function was attached to a single member of a union type.
@@ -24,40 +26,23 @@ backend-1  | /usr/local/lib/python3.12/site-packages/pydantic/_internal/_generat
 backend-1  |   warnings.warn(
 backend-1  | /usr/local/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:2274: UnsupportedFieldAttributeWarning: The 'alias' attribute with value 'endedAt' was provided to the `Field()` function, which has no effect in the context it was used. 'alias' is field-specific metadata, and can only be attached to a model field using `Annotated` metadata or by assignment. This may have happened because an `Annotated` type alias using the `type` statement was used, or if the `Field()` function was attached to a single member of a union type.
 backend-1  |   warnings.warn(
-backend-1  | INFO:     172.21.0.1:47400 - "POST /api/sessions HTTP/1.1" 201 Created
+backend-1  | INFO:     172.28.0.1:42180 - "POST /api/sessions HTTP/1.1" 201 Created
 backend-1  | /usr/local/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:2274: UnsupportedFieldAttributeWarning: The 'alias' attribute with value 'logId' was provided to the `Field()` function, which has no effect in the context it was used. 'alias' is field-specific metadata, and can only be attached to a model field using `Annotated` metadata or by assignment. This may have happened because an `Annotated` type alias using the `type` statement was used, or if the `Field()` function was attached to a single member of a union type.
 backend-1  |   warnings.warn(
 backend-1  | /usr/local/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:2274: UnsupportedFieldAttributeWarning: The 'alias' attribute with value 'sensorType' was provided to the `Field()` function, which has no effect in the context it was used. 'alias' is field-specific metadata, and can only be attached to a model field using `Annotated` metadata or by assignment. This may have happened because an `Annotated` type alias using the `type` statement was used, or if the `Field()` function was attached to a single member of a union type.
 backend-1  |   warnings.warn(
 backend-1  | /usr/local/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:2274: UnsupportedFieldAttributeWarning: The 'alias' attribute with value 'recordedAt' was provided to the `Field()` function, which has no effect in the context it was used. 'alias' is field-specific metadata, and can only be attached to a model field using `Annotated` metadata or by assignment. This may have happened because an `Annotated` type alias using the `type` statement was used, or if the `Field()` function was attached to a single member of a union type.
 backend-1  |   warnings.warn(
-backend-1  | INFO:     172.21.0.1:47414 - "POST /api/sensor-logs HTTP/1.1" 201 Created
-backend-1  | INFO:     172.21.0.1:47420 - "POST /api/sensor-logs HTTP/1.1" 201 Created
-backend-1  | INFO:     172.21.0.1:47432 - "GET /api/mongodb/health HTTP/1.1" 200 OK
-backend-1  | INFO:     172.21.0.1:47440 - "GET /api/sensor-logs?recordedFrom=2026-08-01T15%3A01%3A30Z&recordedTo=2026-08-01T15%3A02%3A30Z&limit=10 HTTP/1.1" 200 OK
-backend-1  | INFO:     172.21.0.1:47450 - "GET /api/telemetry/summary?patientId=INT-P001&limit=10 HTTP/1.1" 200 OK
-backend-1  | INFO:     172.21.0.1:47466 - "GET /api/patients/INT-P001/telemetry HTTP/1.1" 200 OK
-backend-1  | INFO:     172.21.0.1:47474 - "GET /api/patients/INT-P001 HTTP/1.1" 200 OK
-backend-1  | INFO:     172.21.0.1:47476 - "PATCH /api/patients/INT-P001 HTTP/1.1" 200 OK
-backend-1  | INFO:     172.21.0.1:47480 - "GET /api/sessions?patientId=INT-P001&limit=10 HTTP/1.1" 200 OK
-backend-1  | INFO:     172.21.0.1:45000 - "GET /dashboard HTTP/1.1" 200 OK
-backend-1  | INFO:     127.0.0.1:41444 - "GET /health/databases HTTP/1.1" 200 OK
-backend-1  | INFO:     127.0.0.1:51208 - "GET /health/databases HTTP/1.1" 200 OK
-backend-1  | INFO:     127.0.0.1:52316 - "GET /health/databases HTTP/1.1" 200 OK
-backend-1  | INFO:     127.0.0.1:40132 - "GET /health/databases HTTP/1.1" 200 OK
-backend-1  | INFO:     127.0.0.1:34716 - "GET /health/databases HTTP/1.1" 200 OK
-backend-1  | INFO:     127.0.0.1:50012 - "GET /health/databases HTTP/1.1" 200 OK
-backend-1  | INFO:     127.0.0.1:32792 - "GET /health/databases HTTP/1.1" 200 OK
-backend-1  | INFO:     127.0.0.1:59298 - "GET /health/databases HTTP/1.1" 200 OK
-backend-1  | INFO:     127.0.0.1:34462 - "GET /health/databases HTTP/1.1" 200 OK
-backend-1  | INFO:     127.0.0.1:56758 - "GET /health/databases HTTP/1.1" 200 OK
-backend-1  | INFO:     127.0.0.1:51952 - "GET /health/databases HTTP/1.1" 200 OK
-backend-1  | INFO:     127.0.0.1:58808 - "GET /health/databases HTTP/1.1" 200 OK
-backend-1  | INFO:     127.0.0.1:36808 - "GET /health/databases HTTP/1.1" 200 OK
-backend-1  | INFO:     127.0.0.1:40280 - "GET /health/databases HTTP/1.1" 200 OK
-backend-1  | INFO:     127.0.0.1:53922 - "GET /health/databases HTTP/1.1" 200 OK
-backend-1  | INFO:     127.0.0.1:38162 - "GET /health/databases HTTP/1.1" 200 OK
-backend-1  | INFO:     127.0.0.1:41514 - "GET /health/databases HTTP/1.1" 200 OK
-backend-1  | INFO:     127.0.0.1:48638 - "GET /health/databases HTTP/1.1" 200 OK
-backend-1  | INFO:     127.0.0.1:37568 - "GET /health/databases HTTP/1.1" 200 OK
-backend-1  | INFO:     127.0.0.1:35470 - "GET /health/databases HTTP/1.1" 200 OK
+backend-1  | INFO:     172.28.0.1:42192 - "POST /api/sensor-logs HTTP/1.1" 201 Created
+backend-1  | INFO:     172.28.0.1:42204 - "POST /api/sensor-logs HTTP/1.1" 201 Created
+backend-1  | INFO:     172.28.0.1:42216 - "GET /api/mongodb/health HTTP/1.1" 200 OK
+backend-1  | INFO:     172.28.0.1:42220 - "GET /api/sensor-logs?recordedFrom=2026-08-01T15%3A01%3A30Z&recordedTo=2026-08-01T15%3A02%3A30Z&limit=10 HTTP/1.1" 200 OK
+backend-1  | INFO:     172.28.0.1:42226 - "GET /api/telemetry/summary?patientId=INT-P001&limit=10 HTTP/1.1" 200 OK
+backend-1  | INFO:     172.28.0.1:42242 - "GET /api/patients/INT-P001/telemetry HTTP/1.1" 200 OK
+backend-1  | INFO:     172.28.0.1:42244 - "GET /api/patients/INT-P001 HTTP/1.1" 200 OK
+backend-1  | INFO:     172.28.0.1:42260 - "PATCH /api/patients/INT-P001 HTTP/1.1" 200 OK
+backend-1  | INFO:     172.28.0.1:42270 - "GET /api/sessions?patientId=INT-P001&limit=10 HTTP/1.1" 200 OK
+backend-1  | INFO:     172.28.0.1:42276 - "GET /dashboard HTTP/1.1" 200 OK
+backend-1  | INFO:     127.0.0.1:36520 - "GET /health/databases HTTP/1.1" 200 OK
+backend-1  | INFO:     127.0.0.1:39812 - "GET /health/databases HTTP/1.1" 200 OK
+backend-1  | INFO:     127.0.0.1:40898 - "GET /health/databases HTTP/1.1" 200 OK

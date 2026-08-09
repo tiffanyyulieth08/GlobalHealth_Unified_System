@@ -16,6 +16,7 @@ disponibilidad de la informacion.
 - PostgreSQL (MOR, XML/XSD, replicacion y fragmentacion).
 - MongoDB (almacenamiento no relacional, agregaciones).
 - Python y FastAPI (backend).
+- React, TypeScript, Vite y Nginx (frontend SPA).
 - Docker y Docker Compose (contenedores y orquestacion).
 - GitHub Actions (CI/CD).
 
@@ -32,6 +33,7 @@ disponibilidad de la informacion.
 | ------------------------------------- | ------------------------------------------- |
 | `backend/app/`                        | Codigo fuente del backend                   |
 | `backend/tests/`                      | Pruebas del backend                         |
+| `frontend/`                           | SPA React, build multi-stage y Nginx        |
 | `database/postgres/mor/`              | Scripts MOR                                 |
 | `database/postgres/xml/schemas/`      | Esquemas XML/XSD                            |
 | `database/postgres/fragmentation/`    | Scripts de fragmentacion (horizontal/vertical) |
@@ -46,11 +48,11 @@ disponibilidad de la informacion.
 
 - Docker Engine o Docker Desktop.
 - Docker Compose v2.
-- `curl` para comprobar el endpoint del backend.
+- `curl` para comprobar el frontend y los endpoints del backend.
 - `mongosh` si se prueban scripts directamente contra MongoDB Atlas.
-- Puerto local `8000` disponible.
+- Puertos locales `3000` (frontend) y `8000` (FastAPI) disponibles.
 - Para la prueba integral: shell POSIX, `sed`, `grep` y `curl`; por defecto se
-  usa el puerto local `18080`.
+  usa los puertos locales `13000` y `18080`.
 
 ## Configuracion
 
@@ -73,6 +75,12 @@ intercambies esos destinos. Para MongoDB local conserva
 `MONGODB_PROVIDER=local`. Para Atlas usa
 `MONGODB_PROVIDER=atlas` y proporciona `MONGODB_URI` mediante una variable de
 entorno o un gestor de secretos. La URI nunca debe entrar en Git.
+
+La imagen del frontend recibe únicamente `VITE_API_BASE_URL`, que es una URL
+pública compilada en la SPA y por defecto vale `http://localhost:8000`.
+`FRONTEND_ORIGINS` debe contener exactamente el origen desde el que se abre la
+SPA, por defecto `http://localhost:3000`; no es una lista de bases de datos ni
+de hosts internos.
 
 ## Uso con Docker Compose
 
@@ -106,10 +114,19 @@ Comprobar el estado de los servicios:
 
 ```bash
 docker compose ps
+curl http://localhost:3000/
+curl http://localhost:3000/clinical-records
 curl http://localhost:8000/health
 curl http://localhost:8000/health/databases
 curl http://localhost:8000/api/mongodb/health
 ```
+
+Abrir `http://localhost:3000`. Nginx sirve los archivos estáticos y devuelve
+`index.html` para rutas de React como `/staff`, `/clinical-records`,
+`/telemetry` y `/distribution`, por lo que un refresh directo funciona. Solo
+el frontend y FastAPI publican puertos; PostgreSQL, MongoDB, coordinadores y
+nodos de fragmentación permanecen en la red interna sin acceso directo desde
+el navegador.
 
 Detener los servicios:
 
@@ -122,9 +139,24 @@ Los volumenes `postgres-primary-data`, `postgres-replica-data` y
 
 ## Estado actual
 
-La infraestructura Docker incluye PostgreSQL Primary/Replica con streaming
-replication, MongoDB para telemetria medica y un backend FastAPI que separa
-escrituras PostgreSQL, lecturas desde la replica y operaciones MongoDB.
+La infraestructura Docker incluye la SPA React servida por Nginx, PostgreSQL
+Primary/Replica con streaming replication, MongoDB para telemetria medica y un
+backend FastAPI que separa escrituras PostgreSQL, lecturas desde la replica y
+operaciones MongoDB. El navegador solo consume FastAPI; no conoce ni recibe
+URLs o credenciales de las bases de datos.
+
+Las vistas de demostración son:
+
+| Vista | Tema presentado | Evidencia técnica asociada |
+| --- | --- | --- |
+| `/staff` | MOR: personal, especialidades y datos compuestos | `/api/mor/*` y `scripts/test-mor.sh` |
+| `/clinical-records` | XML, validación XSD y consulta clínica | `/api/xml/*` y `scripts/test-xml-xsd.sh` |
+| `/telemetry` | Pacientes, sesiones y sensores en MongoDB | `/api/patients/*`, `/api/sessions`, `/api/sensor-logs` |
+| `/` | Primary/Replica, salud y dashboard leído desde Replica | `/health/databases` y `/dashboard` |
+| `/distribution` | Fragmentación horizontal/vertical y coordinadores | `/api/fragmentation/*` y scripts de fragmentación |
+
+Las vistas de módulo identifican las capacidades que se defienden; los
+endpoints y scripts citados son la verificación funcional reproducible.
 
 ### Fase 1: MOR y XML/XSD
 
@@ -332,11 +364,12 @@ Con Docker activo, ejecutar:
 sh scripts/test-all.sh
 ```
 
-La prueba crea un entorno Docker aislado y verifica en un solo flujo la creación
-del médico en PostgreSQL Primary, la aceptación y rechazo XML/XSD, la telemetría
-en MongoDB con `$lookup`, la consulta del dashboard desde Replica, ambas
-reconstrucciones de fragmentación y la ausencia de credenciales en respuestas y
-logs. Las evidencias sanitizadas de la ejecución quedan en
+La prueba crea un entorno Docker aislado y verifica en un solo flujo el frontend
+y su fallback SPA, FastAPI y CORS, los roles Primary/Replica, la creación del
+médico en PostgreSQL Primary, la aceptación y rechazo XML/XSD, la telemetría en
+MongoDB con `$lookup`, la consulta del dashboard desde Replica, ambas
+reconstrucciones de fragmentación y la ausencia de credenciales en respuestas,
+logs y archivos estáticos de la imagen. Las evidencias sanitizadas quedan en
 `docs/evidence/integration/`.
 
 El entorno se elimina junto con sus volúmenes al terminar. Para conservarlo con
