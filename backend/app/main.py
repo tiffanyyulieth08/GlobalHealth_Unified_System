@@ -14,6 +14,7 @@ from app.config import get_settings
 from app.mongodb import close_mongodb, connect_mongodb
 from app.routers.mor import router as mor_router
 from app.routers.telemetry import router as telemetry_router
+from app.routers.xml import router as xml_router
 
 logger = logging.getLogger("app")
 settings = get_settings()
@@ -51,6 +52,7 @@ app = FastAPI(
 )
 app.include_router(telemetry_router)
 app.include_router(mor_router)
+app.include_router(xml_router)
 
 app.add_middleware(
     CORSMiddleware,
