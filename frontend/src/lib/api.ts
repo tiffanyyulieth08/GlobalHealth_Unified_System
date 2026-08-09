@@ -9,6 +9,12 @@ type ApiErrorPayload = {
   message?: string;
 };
 
+export type ApiResult<T> = {
+  data: T;
+  ok: boolean;
+  status: number;
+};
+
 export class ApiError extends Error {
   readonly status: number;
 
@@ -71,9 +77,43 @@ export async function apiRequest<T>(
   return parseResponse<T>(response);
 }
 
+export async function apiRequestResult<T>(
+  path: string,
+  signal?: AbortSignal,
+): Promise<ApiResult<T>> {
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE_URL}${path}`, {
+      headers: { Accept: "application/json" },
+      method: "GET",
+      signal,
+    });
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") {
+      throw error;
+    }
+    throw new ApiError(
+      "No fue posible conectar con el servicio. Verifica que la API esté disponible.",
+      0,
+    );
+  }
+
+  let data: T;
+  try {
+    data = (await response.json()) as T;
+  } catch {
+    throw new ApiError("El servicio devolvió una respuesta no válida.", response.status);
+  }
+
+  return { data, ok: response.ok, status: response.status };
+}
+
 export const api = {
   get<T>(path: string, signal?: AbortSignal) {
     return apiRequest<T>(path, { method: "GET", signal });
+  },
+  getResult<T>(path: string, signal?: AbortSignal) {
+    return apiRequestResult<T>(path, signal);
   },
   post<T>(path: string, body?: unknown, signal?: AbortSignal) {
     return apiRequest<T>(path, {
