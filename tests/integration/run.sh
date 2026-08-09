@@ -154,6 +154,24 @@ require_text "$EVIDENCE_DIR/lookup.json" '"sessionId":"INT-S001"' "lookup incluy
 require_text "$EVIDENCE_DIR/lookup.json" '"logId":"INT-L001"' "lookup incluye el primer log"
 require_text "$EVIDENCE_DIR/lookup.json" '"logId":"INT-L002"' "lookup incluye el segundo log"
 
+printf '==> Consultando y actualizando un paciente\n'
+curl --silent --show-error --fail-with-body \
+    "$BASE_URL/api/patients/INT-P001" \
+    --output "$EVIDENCE_DIR/patient-get.json"
+require_text "$EVIDENCE_DIR/patient-get.json" '"patientId":"INT-P001"' "consulta de paciente individual"
+curl --silent --show-error --fail-with-body \
+    -X PATCH -H "Content-Type: application/json" \
+    --data '{"firstName":"PacienteActualizado"}' \
+    "$BASE_URL/api/patients/INT-P001" \
+    --output "$EVIDENCE_DIR/patient-patch.json"
+require_text "$EVIDENCE_DIR/patient-patch.json" '"firstName":"PacienteActualizado"' "actualizacion parcial de paciente"
+
+printf '==> Listando sesiones por paciente\n'
+curl --silent --show-error --fail-with-body \
+    "$BASE_URL/api/sessions?patientId=INT-P001&limit=10" \
+    --output "$EVIDENCE_DIR/sessions-by-patient.json"
+require_text "$EVIDENCE_DIR/sessions-by-patient.json" '"sessionId":"INT-S001"' "listado de sesiones por paciente"
+
 printf '==> Consultando dashboard desde PostgreSQL Replica\n'
 curl --silent --show-error --fail-with-body \
     "$BASE_URL/dashboard" \

@@ -26,6 +26,20 @@ class PatientCreate(BaseModel):
     active: bool = True
 
 
+class PatientUpdate(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
+    first_name: str | None = Field(
+        default=None, alias="firstName", min_length=1, max_length=100
+    )
+    last_name: str | None = Field(
+        default=None, alias="lastName", min_length=1, max_length=100
+    )
+    date_of_birth: datetime | None = Field(default=None, alias="dateOfBirth")
+    sex: Literal["female", "male", "other", "unknown"] | None = None
+    active: bool | None = None
+
+
 class SessionCreate(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
@@ -95,6 +109,35 @@ def list_patients(
     return list(cursor)
 
 
+@router.get("/patients/{patient_id}")
+def get_patient(patient_id: str, database: MongoDatabase) -> dict[str, Any]:
+    document = database.patients.find_one({"patientId": patient_id}, {"_id": 0})
+    if document is None:
+        raise HTTPException(status_code=404, detail="patientId does not exist")
+    return document
+
+
+@router.patch("/patients/{patient_id}")
+def update_patient(
+    patient_id: str,
+    patient: PatientUpdate,
+    database: MongoDatabase,
+) -> dict[str, Any]:
+    updates = patient.model_dump(exclude_unset=True, by_alias=True)
+    if not updates:
+        raise HTTPException(status_code=422, detail="no patient fields to update")
+    updates["updatedAt"] = datetime.now().astimezone()
+    document = database.patients.find_one_and_update(
+        {"patientId": patient_id},
+        {"$set": updates},
+        return_document=True,
+        projection={"_id": 0},
+    )
+    if document is None:
+        raise HTTPException(status_code=404, detail="patientId does not exist")
+    return document
+
+
 @router.post("/sessions", status_code=status.HTTP_201_CREATED)
 def create_session(session: SessionCreate, database: MongoDatabase) -> dict[str, Any]:
     if not database.patients.find_one({"patientId": session.patient_id}):
@@ -106,6 +149,29 @@ def create_session(session: SessionCreate, database: MongoDatabase) -> dict[str,
     except DuplicateKeyError as error:
         raise HTTPException(status_code=409, detail="sessionId already exists") from error
     return without_id(document)
+
+
+@router.get("/sessions")
+def list_sessions(
+    database: MongoDatabase,
+    patient_id: Annotated[str | None, Query(alias="patientId")] = None,
+    session_status: Annotated[
+        Literal["active", "completed", "cancelled"] | None,
+        Query(alias="status"),
+    ] = None,
+    limit: Annotated[int, Query(ge=1, le=100)] = 20,
+) -> list[dict[str, Any]]:
+    filters: dict[str, Any] = {}
+    if patient_id:
+        filters["patientId"] = patient_id
+    if session_status:
+        filters["status"] = session_status
+    cursor = (
+        database.sessions.find(filters, {"_id": 0})
+        .sort("startedAt", DESCENDING)
+        .limit(limit)
+    )
+    return list(cursor)
 
 
 @router.patch("/sessions/{session_id}/complete")
