@@ -1,0 +1,2 @@
+ Container globalhealth-final-chaos-postgres-primary-1  Starting
+ Container globalhealth-final-chaos-postgres-primary-1  Started

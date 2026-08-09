@@ -1,0 +1,24 @@
+ register_xml_schema 
+---------------------
+ 
+(1 row)
+
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+DO
+                evidence                 
+-----------------------------------------
+ OK: medico creado en PostgreSQL Primary
+(1 row)
+
+              evidence               
+-------------------------------------
+ OK: expediente XML valido insertado
+(1 row)
+
+                   evidence                    
+-----------------------------------------------
+ OK: expediente XML invalido rechazado por XSD
+(1 row)
+

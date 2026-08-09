@@ -13,13 +13,13 @@ commit probado y resultado. Un bloqueo queda documentado como bloqueo, nunca com
 ## 2. Arquitectura completa
 
 ```text
-Cliente HTTP
+Navegador
     |
     v
-FastAPI :8000
-    |-- escrituras SQL ------> PostgreSQL Primary --WAL asíncrono--> Replica
-    |-- dashboard SQL ---------------------------------------------> Replica
-    `-- telemetría ----------> MongoDB local o MongoDB Atlas
+Frontend SPA / Nginx :3000 ----HTTP/CORS----> FastAPI :8000
+                                                |-- escrituras SQL ------> PostgreSQL Primary --WAL asíncrono--> Replica
+                                                |-- dashboard SQL ---------------------------------------------> Replica
+                                                `-- telemetría ----------> MongoDB local o MongoDB Atlas
 
 Coordinador vertical --postgres_fdw--> fragment-public
                      `---------------> fragment-financial
@@ -29,13 +29,17 @@ Coordinador horizontal --postgres_fdw--> fragment-north
 ```
 
 Todos los contenedores de datos se comunican por la red interna
-`globalhealth-network`. El backend también pertenece a
-`globalhealth-edge-network` y es el único servicio que publica un puerto al host.
-Los datos persistentes usan volúmenes Docker. La configuración está en
-`compose.yaml`; las credenciales se reciben por variables de entorno.
+`globalhealth-network`. El backend pertenece además a
+`globalhealth-edge-network`, donde recibe al frontend. El host publica Nginx en
+`${FRONTEND_PORT:-3000}` y FastAPI en `${APP_PORT:-8000}`; ningún PostgreSQL,
+MongoDB, coordinador ni nodo de fragmentación publica un puerto. El navegador
+solo conoce la URL pública de FastAPI y el backend es el único componente con
+URLs y credenciales de bases de datos. Los datos persistentes usan volúmenes
+Docker.
 
 | Componente | Responsabilidad | Implementación |
 | --- | --- | --- |
+| Frontend | SPA React, navegación y presentación de los subsistemas | `frontend/src/`, `frontend/Dockerfile`, `frontend/nginx.conf` |
 | FastAPI | Salud, dashboard, escritura de caos y API de telemetría | `backend/app/main.py`, `backend/app/routers/telemetry.py` |
 | PostgreSQL Primary | Escrituras, MOR, XML y emisión WAL | `docker/postgres/primary/`, `database/postgres/` |
 | PostgreSQL Replica | Hot standby y consultas del dashboard | `docker/postgres/replica/` |
@@ -48,6 +52,7 @@ Los datos persistentes usan volúmenes Docker. La configuración está en
 
 | Servicio | Rol | Persistencia/puerto |
 | --- | --- | --- |
+| `frontend` | Build Vite y servidor SPA Nginx | sin persistencia, puerto `${FRONTEND_PORT:-3000}` |
 | `postgres-primary` | Escrituras y emisor WAL | volumen `postgres-primary-data`, sin puerto host |
 | `postgres-replica` | Hot standby y lecturas | volumen `postgres-replica-data`, sin puerto host |
 | `mongodb` | Telemetría local | volumen `mongodb-data`, sin puerto host |
@@ -57,6 +62,19 @@ Los datos persistentes usan volúmenes Docker. La configuración está en
 | `fragment-north` / `fragment-south` | Fragmentos horizontales | un volumen por nodo |
 | `fragmentation-coordinator-horizontal` | Reconstrucción horizontal | volumen propio |
 
+### Estructura relevante del repositorio
+
+| Ruta | Contenido |
+| --- | --- |
+| `frontend/src/` | Componentes, navegación y vistas React |
+| `frontend/Dockerfile` | Build multi-stage Node/Vite → Nginx |
+| `frontend/nginx.conf` | Servidor estático, healthcheck y fallback SPA |
+| `backend/app/` | FastAPI y acceso exclusivo a las bases de datos |
+| `database/` | MOR, XML/XSD, MongoDB y fragmentación |
+| `docker/postgres/` | Primary, Replica y coordinadores |
+| `tests/integration/` | Flujo integral frontend/backend/datos/seguridad |
+| `docs/` | Arquitectura, operación, defensa y evidencia |
+
 ### Flujo de una operación
 
 Las escrituras SQL usan el pool creado desde `POSTGRES_WRITE_URL`, que apunta a
@@ -65,6 +83,28 @@ desde `POSTGRES_READ_URL`, que apunta a `postgres-replica`. La API de telemetrí
 usa `MONGODB_PROVIDER`, `MONGODB_URI` y `MONGODB_DB`, y comprueba MongoDB con
 un `ping` al iniciar. No existe conmutación automática ni promoción de la
 réplica.
+
+La URL compilada de FastAPI se define con `VITE_API_BASE_URL` y vale
+`http://localhost:8000` por defecto. Como es una URL que el navegador necesita,
+no es secreta. `FRONTEND_ORIGINS` vale por defecto
+`http://localhost:3000`; CORS no admite otros orígenes a menos que el operador
+reemplace explícitamente ese valor. Nginx resuelve rutas desconocidas de la SPA
+con `index.html`, de modo que un refresh de `/clinical-records` o
+`/distribution` no produce 404.
+
+### Vistas para la demostración
+
+| Vista | Subsistema visible | Comprobación funcional |
+| --- | --- | --- |
+| `/staff` | MOR: personal, especialidades, contacto y composición | API `/api/mor/*` y `scripts/test-mor.sh` |
+| `/clinical-records` | Documentos XML, validación XSD y consulta clínica | API `/api/xml/*` y `scripts/test-xml-xsd.sh` |
+| `/telemetry` | Pacientes, sesiones y señales almacenadas en MongoDB | APIs de telemetría y `scripts/test-mongodb.sh` |
+| `/` | Salud Primary/Replica, flujo WAL y métricas leídas desde Replica | `/health/databases`, `/dashboard` y prueba de replicación |
+| `/distribution` | Fragmentación horizontal, vertical y coordinadores | `/api/fragmentation/*` y ambas pruebas de fragmentación |
+
+Las pantallas de módulo presentan el mapa funcional para la defensa. La
+evidencia de persistencia, reconstrucción y roles proviene de los endpoints y
+scripts reproducibles de la última columna, no de texto estático de la SPA.
 
 ## 3. Modelo objeto-relacional (MOR)
 
@@ -153,6 +193,20 @@ El coordinador expone ambas tablas mediante `postgres_fdw`. La función
 `insert_patient()` enruta cada inserción y rechaza regiones no soportadas; la
 vista `patients_all` reconstruye el conjunto con `UNION ALL`.
 
+```mermaid
+flowchart LR
+    API[FastAPI] -->|lectura| HC[Coordinador horizontal]
+    HC -->|insert_patient: region = NORTH| N[(fragment-north<br/>patients<br/>CHECK NORTH)]
+    HC -->|insert_patient: region = SOUTH| S[(fragment-south<br/>patients<br/>CHECK SOUTH)]
+    N -->|postgres_fdw: patients_north| U[patients_all]
+    S -->|postgres_fdw: patients_south| U
+    U -->|UNION ALL| HC
+```
+
+El diagrama formal conserva la dirección del enrutamiento y de la
+reconstrucción. Puede renderizarse directamente desde Mermaid al generar el PDF
+final.
+
 La implementación detecta un `patient_id` repetido entre nodos durante la
 prueba, pero no ofrece una restricción global que impida todos los duplicados.
 El enrutamiento centralizado es, por tanto, parte de la integridad del diseño.
@@ -169,6 +223,20 @@ vista `patients_full`, que reconstruye registros coincidentes con
 `JOIN ... USING (patient_id)`. `public_role` solo puede leer el fragmento
 público y `financial_role` el financiero. Un `INNER JOIN` excluye huérfanos;
 las pruebas los cuentan explícitamente para hacer visible esa condición.
+
+```mermaid
+flowchart LR
+    API[FastAPI] -->|lectura| VC[Coordinador vertical]
+    P[(fragment-public<br/>patients_public<br/>identidad y contacto)] -->|postgres_fdw<br/>patient_id| J[patients_full]
+    F[(fragment-financial<br/>patients_financial<br/>seguro y facturación)] -->|postgres_fdw<br/>patient_id| J
+    J -->|INNER JOIN USING patient_id| VC
+    PR[public_role] -->|SELECT permitido| P
+    PR -.->|SELECT denegado| F
+    FR[financial_role] -->|SELECT permitido| F
+```
+
+La llave de reconstrucción y la frontera de autorización quedan explícitas; el
+diagrama puede incluirse sin cambios en una exportación Mermaid a SVG o PDF.
 
 ## 9. Teorema CAP aplicado
 
@@ -287,18 +355,27 @@ Copy-Item .env.example .env
 
 Editar `.env` y reemplazar al menos `POSTGRES_PASSWORD`,
 `POSTGRES_REPLICATION_PASSWORD`, `FRAGMENT_FDW_PASSWORD` y
-`FRAGMENT_HORIZONTAL_FDW_PASSWORD`.
+`FRAGMENT_HORIZONTAL_FDW_PASSWORD`. Mantener
+`VITE_API_BASE_URL=http://localhost:8000` y
+`FRONTEND_ORIGINS=http://localhost:3000` cuando se usan los puertos por defecto.
+La imagen frontend no recibe ninguna URL interna ni credencial de base de datos.
 
 ```bash
 docker compose config
 docker compose build
 docker compose up -d --wait
 docker compose ps
+curl --fail http://localhost:3000/
+curl --fail http://localhost:3000/clinical-records
 curl --fail http://localhost:8000/health
 curl --fail http://localhost:8000/health/databases
 curl --fail http://localhost:8000/api/mongodb/health
 curl --fail http://localhost:8000/dashboard
 ```
+
+La aplicación se abre en `http://localhost:3000`. La segunda comprobación
+confirma el fallback de Nginx para refresh de rutas SPA. FastAPI permanece en
+`http://localhost:8000`; los nodos de datos no tienen URL pública.
 
 Alternativa de arranque:
 
@@ -349,9 +426,12 @@ sh scripts/test-fragmentation.sh
 sh scripts/test-all.sh
 ```
 
-La prueba integral usa por defecto el puerto `18080`, crea credenciales y un
-proyecto Compose efímeros, guarda evidencia sanitizada y ejecuta
-`docker compose down -v` al terminar. Para conservar el entorno:
+La prueba integral usa por defecto los puertos `13000` para la SPA y `18080`
+para FastAPI. Comprueba frontend, refresh de ruta, CORS, backend, roles de
+Primary/Replica, dashboard, MongoDB, fragmentación y ausencia de secretos en
+respuestas, logs y archivos estáticos. Crea credenciales y un proyecto Compose
+efímeros, guarda evidencia sanitizada y ejecuta `docker compose down -v` al
+terminar. Para conservar el entorno:
 
 ```bash
 KEEP_INTEGRATION_ENV=1 sh scripts/test-all.sh
@@ -489,7 +569,9 @@ resultados solo se declaran cuando existe el artefacto generado.
 
 | Requerimiento | Implementación | Prueba | Evidencia |
 | --- | --- | --- | --- |
-| Arquitectura desplegable | `compose.yaml`, `backend/Dockerfile`, `docker/postgres/` | `docker compose config`, `docker compose ps` | Estado observado por el operador |
+| Arquitectura desplegable | `compose.yaml`, Dockerfiles de frontend/backend, `docker/postgres/` | `docker compose config`, `docker compose ps` | Estado observado por el operador |
+| Frontend SPA | `frontend/Dockerfile`, `frontend/nginx.conf`, `frontend/src/` | build Vite, `/`, refresh de `/clinical-records`, healthcheck | `frontend-index.html`, `frontend-spa-refresh.html` al ejecutar integración |
+| URL API y CORS | `VITE_API_BASE_URL`, `FRONTEND_ORIGINS`, `backend/app/config.py` | orígenes permitido y rechazado en integración; pruebas unitarias | `cors-allowed.txt`, `cors-rejected.txt` al ejecutar integración |
 | MOR | `database/postgres/mor/01_types.sql` a `05_crud.sql` | `scripts/test-mor.sh`, `06_tests.sql` | `docs/evidence/final/mor-test.log` |
 | XML/XSD | `database/postgres/xml/`, `clinical-record-v1.xsd` | `scripts/test-xml-xsd.sh`, `04_tests.sql` | `docs/evidence/final/xml-xsd-test.log` |
 | MongoDB | `database/mongodb/01_collections.js` a `04_aggregations.js` | `scripts/test-mongodb.sh`, `05_tests.js` | Salida de consola; integración puede generar JSON |
@@ -500,7 +582,7 @@ resultados solo se declaran cuando existe el artefacto generado.
 | Fragmentación vertical | `fragmentation/vertical/`, vista `patients_full` | `scripts/test-fragmentation-vertical.sh` | Salida; archivo de integración después de ejecutar |
 | Separación de acceso | roles de fragmentación vertical | prueba de `public_role` | Salida del script vertical |
 | Chaos Engineering | `scripts/chaos-replication.sh`, endpoint de escritura de caos | ejecución del mismo script | `docs/evidence/replication-chaos/01` a `09` |
-| No exposición de secretos | variables de entorno y revisión de respuestas/logs | bloque de seguridad de `tests/integration/run.sh` | `security.txt` después de ejecutar |
+| No exposición de secretos | separación de build args y variables backend | revisión de respuestas, logs y archivos estáticos en integración | `security.txt` después de ejecutar |
 | Despliegue Atlas | `compose.atlas.yaml`, `docs/cloud/mongodb-atlas.md` | base temporal con `test-mongodb-atlas.sh` | `docs/evidence/final/mongodb-atlas-test.log` |
 
 ## 17. Auditoría de comandos del README
@@ -508,7 +590,7 @@ resultados solo se declaran cuando existe el artefacto generado.
 Se comprobó que todas las rutas de scripts citadas en `README.md` existen:
 `bootstrap.sh`, pruebas MOR, XML/XSD, MongoDB, replicación, fragmentación,
 integración, estado y caos. También existen los servicios Compose invocados:
-`postgres-primary`, `postgres-replica`, `mongodb`, `backend`, los cuatro
+`frontend`, `postgres-primary`, `postgres-replica`, `mongodb`, `backend`, los cuatro
 fragmentos y ambos coordinadores. Los endpoints documentados están declarados
 en FastAPI.
 

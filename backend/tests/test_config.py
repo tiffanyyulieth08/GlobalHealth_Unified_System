@@ -46,7 +46,7 @@ class SettingsTests(unittest.TestCase):
             settings = get_settings()
         self.assertEqual(
             settings.frontend_origins,
-            ["http://localhost:5173", "http://localhost:3000"],
+            ["http://localhost:3000"],
         )
 
     def test_frontend_origins_parses_custom_list(self) -> None:

@@ -1,0 +1,70 @@
+#1 [internal] load local bake definitions
+#1 reading from stdin 871B done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile
+#2 transferring dockerfile: 212B 0.1s done
+#2 DONE 0.1s
+
+#3 [internal] load metadata for docker.io/library/postgres:16-bookworm
+#3 DONE 1.1s
+
+#4 [internal] load .dockerignore
+#4 transferring context: 2B 0.0s done
+#4 DONE 0.1s
+
+#5 [1/2] FROM docker.io/library/postgres:16-bookworm@sha256:64154d0babcb1741988719e703419af0382b19953706149f9872fbd0f438efa8
+#5 resolve docker.io/library/postgres:16-bookworm@sha256:64154d0babcb1741988719e703419af0382b19953706149f9872fbd0f438efa8 0.1s done
+#5 DONE 0.1s
+
+#6 [2/2] RUN apt-get update     && apt-get install --no-install-recommends -y         postgresql-contrib-16     && rm -rf /var/lib/apt/lists/*
+#6 CACHED
+
+#7 exporting to image
+#7 exporting layers done
+#7 exporting manifest sha256:28d107b632040c365d9188c2b145dc0dc42e5eb311a2ea804f5bee8c37899237 done
+#7 exporting config sha256:a30c0556b2e7aedad2d077d9de8263913adca451a4b3210d9e91c2c5950ca3b9 done
+#7 exporting attestation manifest sha256:3bb54311e24ef0ec0caa2dbf5ed22faba27b7640d57fb8f90b4c2f5e1b53566b 0.1s done
+#7 exporting manifest list sha256:9a9ae1ef19fc23539d1973fc1cba0508955f1db39ae39bcbcfcc2749c4750235
+#7 exporting manifest list sha256:9a9ae1ef19fc23539d1973fc1cba0508955f1db39ae39bcbcfcc2749c4750235 0.0s done
+#7 naming to docker.io/library/globalhealth-final-integration-fragmentation-coordinator-horizontal:local done
+#7 unpacking to docker.io/library/globalhealth-final-integration-fragmentation-coordinator-horizontal:local 0.0s done
+#7 DONE 0.3s
+
+#8 resolving provenance for metadata file
+#8 DONE 0.0s
+==> Limpiando y sembrando datos de prueba (llaves disjuntas)
+==> Datos semilla
+OK: fragment-north semilla 3 registros -> 3
+OK: fragment-south semilla 3 registros -> 3
+==> Restricciones CHECK por region
+OK: fragment-north solo region NORTH -> 3
+OK: fragment-south solo region SOUTH -> 3
+==> Conjuntos de llaves disjuntos en estado normal
+OK: sin patient_id compartidos entre NORTH y SOUTH (INTERSECT vacio) -> 
+==> Ruta normal de escritura: insert_patient via coordinador
+OK: enrutamiento NORTH inserta en fragment-north -> 1
+OK: enrutamiento NORTH no toca fragment-south -> 0
+OK: enrutamiento SOUTH inserta en fragment-south -> 1
+OK: enrutamiento SOUTH no toca fragment-north -> 0
+OK: insercion normal NORTH via coordinador -> 1
+OK: insercion normal SOUTH via coordinador -> 1
+==> Acceso administrativo directo a un fragmento
+OK: fragment-north rechaza insercion con region SOUTH
+OK: fragment-south rechaza insercion con region NORTH
+==> Duplicados entre nodos (negativas con ROLLBACK)
+OK: insert_patient rechaza patient_id 1 (existe en NORTH) en SOUTH
+OK: insert_patient rechaza patient_id 4 (existe en SOUTH) en NORTH
+OK: insert_patient rechaza patient_id 20 (existe en NORTH) en SOUTH
+==> Estado normal tras las negativas (sin rastros)
+OK: sigue sin patient_id compartidos tras las negativas -> 
+OK: solo queda la semilla para patient_id 1 -> 1
+OK: solo queda la semilla para patient_id 4 -> 1
+==> Reconstruccion global mediante UNION ALL
+OK: reconstruccion global 10 registros -> 10
+OK: reconstruccion global 5 NORTH -> 5
+OK: reconstruccion global 5 SOUTH -> 5
+OK: reconstruccion incluye paciente 6 (NORTH) -> 1
+OK: reconstruccion incluye paciente 7 (SOUTH) -> 1
+OK: reconstruccion global sin patient_id duplicados -> 0
+All fragmentation horizontal tests passed.

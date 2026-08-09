@@ -7,6 +7,8 @@ RUN_ID="${INTEGRATION_RUN_ID:-$(date +%s)-$$}"
 PROJECT_NAME="${INTEGRATION_COMPOSE_PROJECT:-globalhealth-integration-$RUN_ID}"
 APP_PORT="${INTEGRATION_APP_PORT:-18080}"
 BASE_URL="http://localhost:$APP_PORT"
+FRONTEND_PORT="${INTEGRATION_FRONTEND_PORT:-13000}"
+FRONTEND_URL="http://localhost:$FRONTEND_PORT"
 EVIDENCE_DIR="${INTEGRATION_EVIDENCE_DIR:-docs/evidence/integration}"
 DB_USER="globalhealth_integration"
 DB_NAME="globalhealth_integration"
@@ -14,6 +16,9 @@ MONGO_DB="globalhealth_integration"
 SCHEMA_NAME="integration_test"
 
 export APP_PORT
+export FRONTEND_PORT
+export FRONTEND_ORIGINS="$FRONTEND_URL"
+export VITE_API_BASE_URL="$BASE_URL"
 export POSTGRES_DB="$DB_NAME"
 export POSTGRES_USER="$DB_USER"
 export POSTGRES_PASSWORD="pg-$RUN_ID-integration-secret"
@@ -79,6 +84,42 @@ mkdir -p "$EVIDENCE_DIR"
 printf '==> Iniciando PostgreSQL Primary/Replica, MongoDB y backend\n'
 compose up -d --wait --wait-timeout 120 mongodb
 compose up -d --build --wait --wait-timeout 240 backend
+compose up -d --build --wait --wait-timeout 120 frontend
+
+printf '==> Verificando frontend, fallback SPA, backend y CORS\n'
+curl --silent --show-error --fail-with-body \
+    "$FRONTEND_URL/" \
+    --output "$EVIDENCE_DIR/frontend-index.html"
+require_text "$EVIDENCE_DIR/frontend-index.html" '<div id="root"></div>' "frontend responde con la SPA"
+curl --silent --show-error --fail-with-body \
+    "$FRONTEND_URL/clinical-records" \
+    --output "$EVIDENCE_DIR/frontend-spa-refresh.html"
+require_text "$EVIDENCE_DIR/frontend-spa-refresh.html" '<div id="root"></div>' "refresh de ruta SPA usa index.html"
+curl --silent --show-error --fail-with-body \
+    "$BASE_URL/health" \
+    --output "$EVIDENCE_DIR/backend-health.json"
+require_text "$EVIDENCE_DIR/backend-health.json" '"status":"healthy"' "backend FastAPI responde"
+curl --silent --show-error --fail-with-body \
+    "$BASE_URL/health/databases" \
+    --output "$EVIDENCE_DIR/databases-health.json"
+require_text "$EVIDENCE_DIR/databases-health.json" '"status":"healthy"' "Primary y Replica saludables"
+require_text "$EVIDENCE_DIR/databases-health.json" '"in_recovery":false' "Primary conserva rol de escritura"
+require_text "$EVIDENCE_DIR/databases-health.json" '"in_recovery":true' "Replica conserva hot standby"
+curl --silent --show-error --fail-with-body \
+    -H "Origin: $FRONTEND_URL" \
+    --dump-header "$EVIDENCE_DIR/cors-allowed.txt" \
+    "$BASE_URL/health" \
+    --output /dev/null
+require_text "$EVIDENCE_DIR/cors-allowed.txt" "access-control-allow-origin: $FRONTEND_URL" "CORS permite el origen real del frontend"
+curl --silent --show-error --fail-with-body \
+    -H "Origin: http://localhost:5173" \
+    --dump-header "$EVIDENCE_DIR/cors-rejected.txt" \
+    "$BASE_URL/health" \
+    --output /dev/null
+if grep -Eiq '^access-control-allow-origin:' "$EVIDENCE_DIR/cors-rejected.txt"; then
+    fail "CORS permitio un origen de desarrollo no configurado"
+fi
+printf 'OK: CORS rechaza origenes distintos al frontend desplegado\n'
 
 printf '==> Preparando MOR y XML/XSD en PostgreSQL Primary\n'
 primary_query "DROP SCHEMA IF EXISTS $SCHEMA_NAME CASCADE; CREATE SCHEMA $SCHEMA_NAME" >/dev/null
@@ -192,6 +233,7 @@ cat "$EVIDENCE_DIR/fragmentation-vertical.txt"
 
 printf '==> Verificando que no se expongan credenciales\n'
 compose logs --no-color backend > "$EVIDENCE_DIR/backend.txt"
+compose logs --no-color frontend > "$EVIDENCE_DIR/frontend.txt"
 for secret in \
     "$POSTGRES_PASSWORD" \
     "$POSTGRES_REPLICATION_PASSWORD" \
@@ -200,6 +242,9 @@ for secret in \
 do
     if grep -Fq "$secret" "$EVIDENCE_DIR"/*; then
         fail "se encontro una credencial en las evidencias o logs"
+    fi
+    if compose exec -T frontend grep -R -Fq "$secret" /usr/share/nginx/html; then
+        fail "se encontro una credencial dentro de la imagen frontend"
     fi
 done
 

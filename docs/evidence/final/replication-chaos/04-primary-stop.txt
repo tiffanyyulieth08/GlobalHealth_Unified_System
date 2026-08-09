@@ -1,0 +1,2 @@
+ Container globalhealth-final-chaos-postgres-primary-1  Stopping
+ Container globalhealth-final-chaos-postgres-primary-1  Stopped
