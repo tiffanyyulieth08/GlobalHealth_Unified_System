@@ -129,7 +129,18 @@ export const api = {
       signal,
     });
   },
-  delete<T>(path: string, signal?: AbortSignal) {
-    return apiRequest<T>(path, { method: "DELETE", signal });
+  put<T>(path: string, body: unknown, signal?: AbortSignal) {
+    return apiRequest<T>(path, {
+      method: "PUT",
+      body: JSON.stringify(body),
+      signal,
+    });
+  },
+  delete<T>(path: string, signal?: AbortSignal, body?: unknown) {
+    return apiRequest<T>(path, {
+      method: "DELETE",
+      body: body === undefined ? undefined : JSON.stringify(body),
+      signal,
+    });
   },
 };

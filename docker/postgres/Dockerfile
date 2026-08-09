@@ -7,6 +7,8 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 COPY docker/postgres/primary/init/ /docker-entrypoint-initdb.d/
+COPY database/postgres/mor/ /opt/globalhealth/mor/
+COPY database/postgres/xml/ /opt/globalhealth/xml/
 COPY docker/postgres/primary/postgresql.conf /etc/postgresql/primary-postgresql.conf
 COPY docker/postgres/primary/pg_hba.conf /etc/postgresql/primary-pg_hba.conf
 COPY docker/postgres/replica/entrypoint.sh /usr/local/bin/replica-entrypoint.sh

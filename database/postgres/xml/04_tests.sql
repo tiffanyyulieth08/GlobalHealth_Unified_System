@@ -112,6 +112,14 @@ BEGIN
         RAISE EXCEPTION 'Internal node update test failed';
     END IF;
 
+    IF NOT xpath_exists(
+        '/gh:clinicalRecord/gh:notes',
+        (SELECT clinical_document FROM clinical_records_xml WHERE record_id = v_record_id),
+        ARRAY[ARRAY['gh', 'https://globalhealth.example/xml/clinical-record/v1']]
+    ) THEN
+        RAISE EXCEPTION 'Internal node update removed notes';
+    END IF;
+
     UPDATE clinical_records_xml
     SET clinical_document = xml_remove_nodes(
         clinical_document,

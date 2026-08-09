@@ -2,6 +2,7 @@ import asyncio
 import unittest
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
+from xml.etree import ElementTree
 
 import asyncpg
 from fastapi import HTTPException, Request
@@ -12,6 +13,16 @@ from app.routers import xml
 NOW = datetime(2026, 8, 8, tzinfo=timezone.utc)
 XSD = '<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"/>'
 DOCUMENT = '<clinicalRecord xmlns="urn:test"/>'
+CLINICAL_DOCUMENT = """<clinicalRecord xmlns="https://globalhealth.example/xml/clinical-record/v1" version="1.0">
+  <patient><id>PAT-000123</id><fullName>Ana Rodríguez</fullName><birthDate>1990-04-12</birthDate></patient>
+  <physician><license>MED-12345</license><fullName>Laura Jiménez</fullName></physician>
+  <recordDate>2026-07-31T14:30:00-06:00</recordDate>
+  <diagnosis code="A09" severity="high">Gastroenteritis infecciosa</diagnosis>
+  <notes>Control en siete días</notes>
+</clinicalRecord>"""
+UPDATED_CLINICAL_DOCUMENT = CLINICAL_DOCUMENT.replace(
+    "Gastroenteritis infecciosa", "Gastroenteritis resuelta"
+)
 
 
 def schema_row(name: str = "clinical-record-v1") -> dict:
@@ -212,6 +223,48 @@ class XmlClinicalRecordApiTests(unittest.TestCase):
         )
         self.assertEqual(result["record_id"], 1)
         self.assertIn("xml_replace_node_text", db.calls[0][0])
+
+    def test_patch_changes_diagnosis_and_preserves_notes(self) -> None:
+        db = FakePool()
+        db.row = {**clinical_row(2), "clinical_document": CLINICAL_DOCUMENT}
+        created = asyncio.run(
+            xml.create_record(
+                request(db),
+                xml.ClinicalRecordCreate(clinical_document=CLINICAL_DOCUMENT),
+            )
+        )
+        self.assertEqual(created["clinical_document"], CLINICAL_DOCUMENT)
+
+        db.row = {**clinical_row(2), "clinical_document": UPDATED_CLINICAL_DOCUMENT}
+        updated = asyncio.run(
+            xml.replace_record_content(
+                request(db),
+                2,
+                xml.NodeReplace(
+                    xpath="/gh:clinicalRecord/gh:diagnosis",
+                    value="Gastroenteritis resuelta",
+                    namespaces={
+                        "gh": "https://globalhealth.example/xml/clinical-record/v1"
+                    },
+                ),
+            )
+        )
+
+        root = ElementTree.fromstring(updated["clinical_document"])
+        namespace = {"gh": "https://globalhealth.example/xml/clinical-record/v1"}
+        self.assertEqual(
+            root.findtext("gh:diagnosis", namespaces=namespace),
+            "Gastroenteritis resuelta",
+        )
+        self.assertEqual(
+            root.findtext("gh:notes", namespaces=namespace),
+            "Control en siete días",
+        )
+        self.assertIn("xml_replace_node_text", db.calls[-1][0])
+        self.assertEqual(
+            db.calls[-1][1][3],
+            '{"gh": "https://globalhealth.example/xml/clinical-record/v1"}',
+        )
 
     def test_internal_delete_uses_database_function(self) -> None:
         db = FakePool()
