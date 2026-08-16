@@ -293,29 +293,106 @@ entre nodos.
 
 ### Cotización cuantitativa
 
-Consulta realizada el **5 de agosto de 2026**, en **USD antes de impuestos**.
-Es una comparación para desarrollo/prueba de bajo tráfico, no un dimensionado
-clínico productivo. La alternativa local significa MongoDB Community
-autoadministrado en un Droplet Basic de DigitalOcean; Atlas usa tier Flex sobre
-AWS en una región de Estados Unidos admitida. Supuestos: 30 días, hasta 5 GB de
-datos, hasta 100 operaciones/s, sin transferencia excedente y cuatro horas de
-administración local o una hora de administración Atlas al mes, valoradas en
-USD 25/h. La tarifa horaria administrativa es un supuesto explícito para hacer
-visible el trabajo, no una cotización del proveedor.
+Precios públicos verificados el **15 de agosto de 2026**, en **USD antes de
+impuestos**. Es una comparación para desarrollo/prueba de bajo tráfico, no un
+dimensionado clínico productivo. La alternativa autoadministrada es MongoDB
+Community en un Droplet Basic de DigitalOcean; no representa el costo real del
+MongoDB local de Compose, que depende del equipo, electricidad y tiempo de la
+persona que lo opera. La alternativa administrada es un escenario cotizado con
+Atlas Flex sobre AWS en una región admitida de Estados Unidos. El repositorio y
+la evidencia sanitizada de conexión no permiten confirmar que el clúster Atlas
+realmente desplegado sea Flex, ni revelan su proveedor o región.
+
+Supuestos de la cotización: 30 días, hasta 5 GB de datos, hasta 100
+operaciones/s, sin transferencia excedente y cuatro horas de administración de
+la alternativa autoadministrada o una hora de administración Atlas al mes,
+valoradas en USD 25/h. Las horas y la tarifa administrativa son supuestos
+explícitos para hacer visible el trabajo, no mediciones del proyecto ni una
+cotización de los proveedores.
 
 | Alternativa | Cómputo mensual | Almacenamiento | Backups | Transferencia | Administración estimada | Total |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| MongoDB local — DigitalOcean Basic, 1 vCPU/2 GiB, región NYC | USD 12.00 | 50 GiB SSD incluidos: USD 0.00 | backup diario, 30%: USD 3.60 | 2,000 GiB incluidos: USD 0.00 | 4 h × USD 25: USD 100.00 | **USD 115.60** |
-| Atlas — AWS, Flex, región de EE. UU., carga base | USD 8.00 | 5 GB incluidos: USD 0.00 | 8 snapshots diarios incluidos: USD 0.00 | ilimitada incluida: USD 0.00 | 1 h × USD 25: USD 25.00 | **USD 33.00** |
+| MongoDB Community autoadministrado — DigitalOcean Basic, 1 vCPU/2 GiB, región NYC | USD 12.00 | 50 GiB SSD incluidos: USD 0.00 | imagen diaria del Droplet, 30%: USD 3.60 | 2,000 GiB incluidos: USD 0.00 | 4 h × USD 25: USD 100.00 | **USD 115.60** |
+| Atlas Flex cotizado — AWS, región admitida de EE. UU., carga base | USD 8.00 | 5 GB incluidos: USD 0.00 | 8 snapshots diarios retenidos: USD 0.00 | ilimitada incluida: USD 0.00 | 1 h × USD 25: USD 25.00 | **USD 33.00** |
 
 Precios verificados: DigitalOcean publica USD 12/mes para 1 vCPU, 2 GiB RAM,
-50 GiB SSD y 2,000 GiB de transferencia; el backup diario cuesta 30% del
-Droplet. Atlas Flex publica USD 8 por 30 días en la carga base, incluye 5 GB,
-100 ops/s y transferencia ilimitada, con tope de USD 30; Atlas conserva los
-últimos ocho snapshots diarios. La región no cambia el precio publicado del
-Droplet Basic; Atlas Flex solo admite un subconjunto de regiones. Si la carga
-supera 100 ops/s, Atlas aumenta hasta USD 30 y el total con una hora de
-administración sería USD 55.
+50 GiB SSD y 2,000 GiB de transferencia; la imagen diaria del Droplet cuesta
+30% adicional. Esa imagen del servidor no equivale por sí sola a backup lógico,
+backup continuo o recuperación a un punto en el tiempo de MongoDB. Atlas Flex
+publica USD 8 por 30 días en la carga base, incluye 5 GB, 100 ops/s y
+transferencia ilimitada, con tope de USD 30; Atlas conserva los últimos ocho
+snapshots diarios. Atlas Flex solo admite un subconjunto de regiones.
+
+| Banda de uso de Atlas Flex | Costo mensual publicado | Costo horario publicado |
+| --- | ---: | ---: |
+| 0–100 ops/s | USD 8.00 | USD 0.0110 |
+| 100–200 ops/s | USD 15.00 | USD 0.0205 |
+| 200–300 ops/s | USD 21.00 | USD 0.0288 |
+| 300–400 ops/s | USD 26.00 | USD 0.0356 |
+| 400–500 ops/s | USD 30.00 | USD 0.0411 |
+
+Bajo los supuestos anteriores, Atlas Flex base reduce el costo directo de
+infraestructura de USD 15.60 a USD 8.00 al mes: USD 7.60, o 48.7%. Al incluir
+el tiempo administrativo supuesto, reduce el total de USD 115.60 a USD 33.00:
+USD 82.60, o 71.5%. En la banda máxima de Flex, el total estimado sería USD
+55.00 y la reducción frente al escenario autoadministrado sería USD 60.60, o
+52.4%. Estos porcentajes son resultados del escenario, no ahorros observados en
+la cuenta real.
+
+### Medición local frente a Atlas
+
+Medición ejecutada el **15 de agosto de 2026 a las 20:37 CST** desde el mismo
+proceso PyMongo 4.13.0 dentro del contenedor del backend. Ambas alternativas
+recibieron 500 documentos sintéticos iniciales con una carga útil de 512 bytes,
+los mismos índices y las mismas operaciones. Para latencia se tomaron 100
+muestras por operación. Para throughput se hicieron 200 intentos por operación
+con concurrencia 8. Las bases temporales local y Atlas se eliminaron al
+terminar. El resultado sanitizado completo está en
+`docs/evidence/final/mongodb-cost-benefit-measurement.json`.
+
+| Operación | Local p50 | Local p95 | Local p99 | Atlas p50 | Atlas p95 | Atlas p99 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Escritura | 0.179 ms | 0.328 ms | 0.361 ms | 88.938 ms | 91.504 ms | 105.972 ms |
+| Lectura indexada | 0.225 ms | 0.493 ms | 0.558 ms | 88.098 ms | 99.401 ms | 122.127 ms |
+| Agregación | 0.556 ms | 0.714 ms | 0.927 ms | 88.429 ms | 93.340 ms | 101.905 ms |
+
+| Operación | Local ops/s | Atlas ops/s | Errores local | Errores Atlas |
+| --- | ---: | ---: | ---: | ---: |
+| Escritura | 2,727.909 | 27.025 | 0/200 | 0/200 |
+| Lectura indexada | 2,945.543 | 86.108 | 0/200 | 0/200 |
+| Agregación | 2,421.893 | 94.239 | 0/200 | 0/200 |
+
+El resultado incluye la latencia de red entre el equipo de prueba y la región
+Atlas, mientras que MongoDB local se encuentra en la misma red Docker. Por eso
+cuantifica la experiencia de esta aplicación desde este equipo, no el límite de
+capacidad universal de MongoDB ni de Atlas. Es una ejecución corta y no mide
+disponibilidad mensual, comportamiento con datos clínicos ni rendimiento desde
+clientes ubicados cerca de la región cloud.
+
+La base Atlas configurada tenía, al momento de la consulta, 3 colecciones y 8
+documentos: 2 pacientes, 2 sesiones y 4 logs. `dbStats` reportó 1,326 bytes de
+datos lógicos, 110,592 bytes de almacenamiento y 253,952 bytes de índices. Estas
+cifras describen únicamente la base lógica visible para el usuario de la
+aplicación; no sustituyen el almacenamiento facturado del clúster que muestra
+Atlas Billing.
+
+### Evidencia cuantitativa pendiente y límites
+
+La prueba Atlas conservada demuestra conexión, CRUD, índices, agregación,
+`$lookup` y salud del backend. El benchmark posterior ya aporta latencia,
+throughput y tasa de errores para una carga reproducible, pero la información
+comercial de la cuenta no es accesible mediante la cadena de conexión de la
+base. Se deben completar los siguientes campos sin usar la URI ni credenciales
+como evidencia pública:
+
+| Dato | Estado y evidencia necesaria |
+| --- | --- |
+| Tier, proveedor y región del clúster desplegado | **PENDIENTE:** captura o exportación sanitizada de la configuración de Atlas. |
+| Uso y costo real | **PARCIAL:** `dbStats` documenta el tamaño lógico actual. **PENDIENTE:** almacenamiento facturado, ops/s promedio y pico del periodo, transferencia, fechas del periodo y total acumulado o facturado en Atlas Billing. |
+| Latencia local frente a Atlas | **MEDIDO:** 100 muestras de escritura, lectura indexada y agregación por alternativa; conservar fecha, ubicación del cliente y método junto con los resultados. |
+| Throughput local frente a Atlas | **MEDIDO:** 200 intentos por operación, concurrencia 8 y 0% de errores en ambas alternativas. Esta prueba corta no determina el máximo sostenible. |
+| Disponibilidad y recuperación | **PARCIAL:** MongoDB publica un SLA de 99.995% para clústeres M10 o superiores. Su aplicación depende de confirmar el tier real. No se observó un periodo mensual ni se ejecutó failover o restauración Atlas; RPO, RTO y tiempo real de restauración siguen pendientes. |
+| Esfuerzo operativo | **PENDIENTE:** horas reales dedicadas a instalación, parches, monitoreo, backup y recuperación en cada alternativa, si se quiere conservar este componente del cálculo. |
 
 Fuentes consultadas el mismo día:
 
@@ -323,14 +400,21 @@ Fuentes consultadas el mismo día:
 - https://www.digitalocean.com/pricing/backups
 - https://www.mongodb.com/docs/atlas/billing/atlas-flex-costs/
 - https://www.mongodb.com/docs/atlas/backup/cloud-backup/flex-cluster-backup/
+- https://www.mongodb.com/docs/atlas/production-notes/
+- https://www.mongodb.com/docs/atlas/architecture/current/high-availability/
 
 ### Decisión recomendada
 
 Para trabajo académico sin Internet, Compose local conserva reproducibilidad.
-Para desarrollo conectado de baja carga, Atlas Flex reduce el costo operativo
-estimado, pero sus límites —5 GB, 500 ops/s máximas, sin backup continuo ni
-PITR— impiden extrapolar esta tabla a producción clínica. Producción requiere
-una cotización dedicada y supuestos de RPO/RTO, residencia y auditoría.
+Para desarrollo conectado de baja carga, el escenario Atlas Flex reduce el
+costo total estimado y delega tareas operativas, pero sus límites —5 GB, 500
+ops/s máximas, sin backup continuo ni PITR— impiden extrapolar la tabla a
+producción clínica. La recomendación es condicional: usar Flex para
+desarrollo/prueba solo si la configuración y el consumo reales caben en esos
+límites; mantener Compose para trabajo desconectado; y no recomendar todavía
+la migración clínica productiva. Esa decisión requiere métricas comparables,
+facturación real, una cotización dedicada y requisitos definidos de RPO/RTO,
+residencia, auditoría y disponibilidad.
 
 ## 12. Despliegue completo
 

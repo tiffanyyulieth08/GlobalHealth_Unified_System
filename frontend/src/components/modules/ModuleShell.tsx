@@ -1,7 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { Plus } from "lucide-react";
 import { Badge } from "../ui/Badge";
-import { Button } from "../ui/Button";
 import { EmptyState } from "../ui/States";
 import { PageHeader } from "../ui/PageHeader";
 import { SectionCard } from "../ui/SectionCard";
@@ -34,7 +32,6 @@ export function ModuleShell({
   return (
     <div className="page-stack">
       <PageHeader
-        actions={<Button icon={Plus} disabled>Nuevo registro</Button>}
         description={description}
         eyebrow={eyebrow}
         title={title}
