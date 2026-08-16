@@ -92,6 +92,9 @@ if ! compose up -d --build --wait --wait-timeout 240 backend \
 fi
 
 if ! curl --silent --show-error --fail \
+    --retry 10 \
+    --retry-delay 2 \
+    --retry-connrefused \
     "$BASE_URL/api/mongodb/health" \
     --output "$HEALTH_OUTPUT" 2>"$TEMP_DIR/curl-error.txt"; then
     fail "el endpoint de salud de MongoDB no respondió"

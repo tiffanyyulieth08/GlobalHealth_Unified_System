@@ -1,0 +1,150 @@
+{
+  "timestamp_utc": "2026-08-16T02:37:13.341005+00:00",
+  "configured_atlas_database": {
+    "collection_document_counts": {
+      "patients": 2,
+      "sensor_logs": 4,
+      "sessions": 2
+    },
+    "collections": 3,
+    "objects": 8,
+    "data_size_bytes": 1326,
+    "storage_size_bytes": 110592,
+    "index_size_bytes": 253952,
+    "scope": "Logical database statistics returned by dbStats; not Atlas billed cluster storage."
+  },
+  "method": {
+    "client": "same PyMongo process in the backend Docker container",
+    "concurrency": 8,
+    "latency_samples_per_operation": 100,
+    "operations": [
+      "insert",
+      "indexed read",
+      "aggregation"
+    ],
+    "payload_bytes": 512,
+    "seed_documents": 500,
+    "throughput_attempts_per_operation": 200,
+    "data_scope": "temporary synthetic databases removed after measurement"
+  },
+  "local": {
+    "latency": {
+      "aggregation": {
+        "errors": 0,
+        "max_ms": 4.68,
+        "mean_ms": 0.621,
+        "min_ms": 0.49,
+        "p50_ms": 0.556,
+        "p95_ms": 0.714,
+        "p99_ms": 0.927,
+        "successful_operations": 100
+      },
+      "insert": {
+        "errors": 0,
+        "max_ms": 0.361,
+        "mean_ms": 0.195,
+        "min_ms": 0.163,
+        "p50_ms": 0.179,
+        "p95_ms": 0.328,
+        "p99_ms": 0.361,
+        "successful_operations": 100
+      },
+      "read": {
+        "errors": 0,
+        "max_ms": 1.386,
+        "mean_ms": 0.268,
+        "min_ms": 0.208,
+        "p50_ms": 0.225,
+        "p95_ms": 0.493,
+        "p99_ms": 0.558,
+        "successful_operations": 100
+      }
+    },
+    "throughput": {
+      "aggregation": {
+        "attempted_operations": 200,
+        "elapsed_seconds": 0.083,
+        "error_rate_percent": 0.0,
+        "errors": 0,
+        "operations_per_second": 2421.893,
+        "successful_operations": 200
+      },
+      "insert": {
+        "attempted_operations": 200,
+        "elapsed_seconds": 0.073,
+        "error_rate_percent": 0.0,
+        "errors": 0,
+        "operations_per_second": 2727.909,
+        "successful_operations": 200
+      },
+      "read": {
+        "attempted_operations": 200,
+        "elapsed_seconds": 0.068,
+        "error_rate_percent": 0.0,
+        "errors": 0,
+        "operations_per_second": 2945.543,
+        "successful_operations": 200
+      }
+    }
+  },
+  "atlas": {
+    "latency": {
+      "aggregation": {
+        "errors": 0,
+        "max_ms": 102.64,
+        "mean_ms": 87.973,
+        "min_ms": 78.693,
+        "p50_ms": 88.429,
+        "p95_ms": 93.34,
+        "p99_ms": 101.905,
+        "successful_operations": 100
+      },
+      "insert": {
+        "errors": 0,
+        "max_ms": 423.435,
+        "mean_ms": 92.327,
+        "min_ms": 84.061,
+        "p50_ms": 88.938,
+        "p95_ms": 91.504,
+        "p99_ms": 105.972,
+        "successful_operations": 100
+      },
+      "read": {
+        "errors": 0,
+        "max_ms": 152.141,
+        "mean_ms": 88.7,
+        "min_ms": 78.535,
+        "p50_ms": 88.098,
+        "p95_ms": 99.401,
+        "p99_ms": 122.127,
+        "successful_operations": 100
+      }
+    },
+    "throughput": {
+      "aggregation": {
+        "attempted_operations": 200,
+        "elapsed_seconds": 2.122,
+        "error_rate_percent": 0.0,
+        "errors": 0,
+        "operations_per_second": 94.239,
+        "successful_operations": 200
+      },
+      "insert": {
+        "attempted_operations": 200,
+        "elapsed_seconds": 7.401,
+        "error_rate_percent": 0.0,
+        "errors": 0,
+        "operations_per_second": 27.025,
+        "successful_operations": 200
+      },
+      "read": {
+        "attempted_operations": 200,
+        "elapsed_seconds": 2.323,
+        "error_rate_percent": 0.0,
+        "errors": 0,
+        "operations_per_second": 86.108,
+        "successful_operations": 200
+      }
+    }
+  }
+}

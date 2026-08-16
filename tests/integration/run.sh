@@ -243,7 +243,7 @@ do
     if grep -Fq "$secret" "$EVIDENCE_DIR"/*; then
         fail "se encontro una credencial en las evidencias o logs"
     fi
-    if compose exec -T frontend grep -R -Fq "$secret" /usr/share/nginx/html; then
+    if MSYS_NO_PATHCONV=1 compose exec -T frontend grep -R -Fq "$secret" /usr/share/nginx/html; then
         fail "se encontro una credencial dentro de la imagen frontend"
     fi
 done
